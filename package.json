@@ -1,16 +1,15 @@
 {
-  "name": "npm-heos-test",
+  "name": "heos-coverart-server",
   "version": "1.0.0",
-  "description": "",
+  "description": "A nodeJS http server showing the cover art of whatever's playing on heos.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Anton",
+  "author": "Anton Kävenheim",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "heos-api": "^4.0.0",
-    "socket.io": "^4.3.1"
+    "heos-api": "^4.0.0"
   }
 }
