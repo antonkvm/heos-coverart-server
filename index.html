@@ -1,0 +1,21 @@
+<html>
+	<head>
+		<title>HEOS current song</title>
+		<meta charset="UTF-8">
+	</head>
+	<body id="changeMe" style="	background-size: contain;
+								background-repeat: no-repeat;
+								background-position: center;
+								background-color: black;">
+		<script>
+			var serverEvents = new EventSource('http://localhost:5555/events')
+			serverEvents.onmessage = (event) => {
+				document.getElementById('changeMe').style.backgroundImage = 'url(' + event.data + ')'
+				console.log('Event data: ' + event.data)
+			}
+			serverEvents.addEventListener('open', (event) => {
+					console.log('Verbindung wurde erfolgreich hergestellt.');
+			})
+		</script>
+	</body>
+</html>
