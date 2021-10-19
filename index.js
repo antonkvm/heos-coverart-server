@@ -22,7 +22,6 @@ heos.discoverOneDevice()
 				response => {
 					console.log("--------------------------------")
 					console.log("Event: now playing media changed")
-					console.log("Retrieving new media info...")
 					connection.write('player', 'get_now_playing_media', {pid: 781222528})
 				}
 			)
@@ -31,9 +30,16 @@ heos.discoverOneDevice()
 					command: 'get_now_playing_media'
 				},
 				response => {
-					media = response.payload // update media object with new metadata
-					console.log("Current song playing: \"%s\" by %s", media.song, media.artist)
-					sse.send(media.image_url)
+					console.log(response.payload)
+					// Some actions from the Spotify app (e.g. scrubbing, skipping) cause a 
+					// brief transitory flush of now_playing media.
+					// This causes two change events: the flush and the repopulating.
+					// The following code prevents the server from sending an SSE when the 
+					// payload.image_url would be empty.
+					if (response.payload.image_url != "") {
+						media = response.payload
+						sse.send(media.image_url)
+					}
 				}
 			)
 	)
@@ -50,6 +56,17 @@ app.get('/', (req, res) => {
 app.listen(xPort, () => console.log("Server is now listening to port %d.", xPort))
 
 // to do:
-// - auto refresh image with websocket, or client-side autorefresh
 // - handle edge cases: no media playing, receiver off, source is not spotify/applemusic/etc
-// - make the get response wait for heos to finish retrieving metadata
+
+
+// Ceaveat
+// Reason:
+// Starting the server, heos-api does its thing, the sse thing gets ready.
+// Then, the client makes a GET request for '/', the html file is sent and gets parsed.
+// During parsing, the SSE connection gets established. But no album cover is shown,
+// because no event has been sent from the server since.
+// The event has to be sent after the html has been parsed, BUT the sendFile function ends the get request,
+// I think.
+// Idea: try using bi-directional web sockets instead, with package express-ws.
+// That way the html can notify the server when its done rendering and request an image_url
+// Bug: Scrubbing through a song on spotify triggers now_playing_media_changed event
