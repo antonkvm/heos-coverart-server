@@ -1,6 +1,4 @@
 const heos = require('heos-api')
-const heosPort = 1255
-const heosIP = '192.168.178.97'
 const express = require('express')
 const app = express()
 const xPort = 5555
@@ -45,8 +43,11 @@ HEOS.then(connection => connection
 			command: 'player_state_changed'
 		},
 		response => {
-			let r = response.heos.message.parsed.state
-			console.log(r)
+			let state = response.heos.message.parsed.state
+			console.log(state)
+			if (state == 'stop') {
+				sse.send('')
+			}
 		}
 	)
 )
@@ -61,19 +62,3 @@ app.get('/', (req, res) => {
 })
 
 app.listen(xPort, () => console.log("Server is now listening to port %d.", xPort))
-
-// to do:
-// - handle edge cases: no media playing, receiver off, source is not spotify/applemusic/etc
-
-
-// Ceaveat
-// Reason:
-// Starting the server, heos-api does its thing, the sse thing gets ready.
-// Then, the client makes a GET request for '/', the html file is sent and gets parsed.
-// During parsing, the SSE connection gets established. But no album cover is shown,
-// because no event has been sent from the server since.
-// The event has to be sent after the html has been parsed, BUT the sendFile function ends the get request,
-// I think.
-// Idea: try using bi-directional web sockets instead, with package express-ws.
-// That way the html can notify the server when its done rendering and request an image_url
-// Bug: Scrubbing through a song on spotify triggers now_playing_media_changed event
