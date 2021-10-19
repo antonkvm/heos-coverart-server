@@ -9,13 +9,14 @@
 								background-color: black;">
 		<script>
 			var serverEvents = new EventSource('http://localhost:5555/stream')
+			const body = document.getElementById('changeMe')
 			serverEvents.onmessage = (event) => {
 				console.log("Something just happened")
-				document.getElementById('changeMe').style.backgroundImage = 'url(' + event.data + ')'
 				console.log('Event data: ' + event.data)
+				body.style.backgroundImage = 'url(' + event.data + ')'
 			}
 			serverEvents.addEventListener('open', (event) => {
-					console.log('Verbindung wurde erfolgreich hergestellt.');
+					console.log('SSE Verbindung wurde erfolgreich hergestellt.');
 			})
 		</script>
 	</body>
