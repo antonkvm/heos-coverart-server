@@ -9,40 +9,47 @@ const sse = new SSE()
 app.get('/stream', sse.init)
 var media
 
-heos.discoverOneDevice()
-	.then(address => heos.connect(address))
-	.then(connection =>
-		connection
-			.write('system', 'register_for_change_events', {enable: 'on'})
-			.write('player', 'get_now_playing_media', {pid: 781222528})
-			.on({	
-					commandGroup: 'event',
-					command: 'player_now_playing_changed'
-				},
-				response => {
-					console.log("--------------------------------")
-					console.log("Event: now playing media changed")
-					connection.write('player', 'get_now_playing_media', {pid: 781222528})
-				}
-			)
-			.on({
-					commandGroup: 'player',
-					command: 'get_now_playing_media'
-				},
-				response => {
-					console.log(response.payload)
-					// Some actions from the Spotify app (e.g. scrubbing, skipping) cause a 
-					// brief transitory flush of now_playing media.
-					// This causes two change events: the flush and the repopulating.
-					// The following code prevents the server from sending an SSE when the 
-					// payload.image_url would be empty.
-					if (response.payload.image_url != "") {
-						media = response.payload
-						sse.send(media.image_url)
-					}
-				}
-			)
+HEOS = heos.discoverAndConnect()
+HEOS.then(connection => connection
+	.write('system', 'register_for_change_events', {enable: 'on'})
+	.write('player', 'get_now_playing_media', {pid: 781222528})
+	.on({	
+			commandGroup: 'event',
+			command: 'player_now_playing_changed'
+		},
+		response => {
+			console.log("--------------------------------")
+			console.log("Event: now playing media changed")
+			connection.write('player', 'get_now_playing_media', {pid: 781222528})
+		}
 	)
+	.on({
+			commandGroup: 'player',
+			command: 'get_now_playing_media'
+		},
+		response => {
+			console.log(response.payload)
+			// Some actions from the Spotify app (e.g. scrubbing, skipping) cause a 
+			// brief transitory flush of now_playing media.
+			// This causes two change events: the flush and the repopulating.
+			// The following code prevents the server from sending an SSE when the 
+			// payload.image_url would be empty.
+			if (response.payload.image_url != "") {
+				media = response.payload
+				sse.send(media.image_url)
+			}
+		}
+	)
+	.on({
+			commandGroup: 'event',
+			command: 'player_state_changed'
+		},
+		response => {
+			let r = response.heos.message.parsed.state
+			console.log(r)
+		}
+	)
+)
 
 app.use('/', (req, res, next) => {
 	console.log("Received a " + req.method + " request at " + req.url)
