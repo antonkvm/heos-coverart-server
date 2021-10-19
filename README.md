@@ -14,14 +14,14 @@ A node JS server using heos-api, express, and SSEs (server-sent events) to displ
 - If you plan on using the server to make something like a digital picture frame, where the displaying browser window and server will run on the same device, you may use localhost as IP address in installation step 4.
 
 ## Notes
-- The server will automatically connect to a single heos device on the network. Behavior with multiple heos devices is not tested.
+- The server will automatically connect to a single heos device on the network. How will it work with multiple heos devices? idk.
 - The server will be accessible throughout your local network at home. If you enable and set up the proper port forwarding on you router, the server will be accessible even outside your network.
 - The server works best on a square display in fullscreen mode. If the browser viewport is not square, black bars will be visible.
 
 ## Known issues
-- When you first connect with the server through your browser, no cover art is shown yet. Only after the first change event (e.g. skipping to next song)
+- When you first connect with the server through your browser, no cover art is shown yet. Only after the first change event (e.g. skipping to next song) will your browser show some cover art.
 
 ## Possible improvements / ideas
-- Provide a seperate file for setting user-specific variables, like IP address of heos device, port.
-- Show more metadata on the display
+- Provide a seperate file for setting user-specific variables, like IP address and port.
+- Show more metadata on the display?
 - Enable on-screen controls (this would require two-way communication between server and browser. SSE would need to be replaced by a websocket or something)
