@@ -1,4 +1,4 @@
-# Heos Cover Art Server (README is currently kinda wrong)
+# Heos Cover Art Server
 
 A node JS server using heos-api, express, and SSEs (server-sent events) to display the coverart of the song currently playing on your heos device (e.g. an AV-Receiver) in a browser window.
 
