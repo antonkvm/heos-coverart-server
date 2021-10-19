@@ -4,8 +4,10 @@ const heosIP = '192.168.178.97'
 const express = require('express')
 const app = express()
 const xPort = 5555
+const SSE = require('express-sse')
+const sse = new SSE()
+app.get('/stream', sse.init)
 var media
-var message = ""
 
 heos.discoverOneDevice()
 	.then(address => heos.connect(address))
@@ -31,7 +33,7 @@ heos.discoverOneDevice()
 				response => {
 					media = response.payload // update media object with new metadata
 					console.log("Current song playing: \"%s\" by %s", media.song, media.artist)
-					emitEvent()
+					sse.send(media.image_url)
 				}
 			)
 	)
@@ -44,20 +46,6 @@ app.get('/', (req, res) => {
 	res.set('Content-Type', 'text/html')
 	res.sendFile(__dirname + '/index.html')
 })
-function emitEvent() {
-	app.get('/events', (req, res) => {
-		res.status(200)
-		res.set({
-			'Content-Type': 'text/event-stream',
-			'Cache-Control': 'no-cache',
-			'Access-Control-Allow-Origin': '*'
-		})
-		setTimeout(() => {
-			message = 'data: ' + media.image_url
-			res.write(message + '\n\n')
-		}, 500)
-	})
-}
 
 app.listen(xPort, () => console.log("Server is now listening to port %d.", xPort))
 

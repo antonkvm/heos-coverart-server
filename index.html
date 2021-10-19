@@ -8,8 +8,9 @@
 								background-position: center;
 								background-color: black;">
 		<script>
-			var serverEvents = new EventSource('http://localhost:5555/events')
+			var serverEvents = new EventSource('http://localhost:5555/stream')
 			serverEvents.onmessage = (event) => {
+				console.log("Something just happened")
 				document.getElementById('changeMe').style.backgroundImage = 'url(' + event.data + ')'
 				console.log('Event data: ' + event.data)
 			}
