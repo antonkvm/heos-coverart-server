@@ -15,7 +15,7 @@ A node JS server using heos-api, express, and SSEs (server-sent events) to displ
 
 ## Notes
 - The server will automatically connect to a single heos device on the network. How will it work with multiple heos devices? idk.
-- The server will be accessible throughout your local network at home. If you enable and set up the proper port forwarding on you router, the server will be accessible even outside your network.
+- The server will be accessible throughout your local network at home. If you enable and set up the proper port forwarding on you router, the server should even be accessible outside your network.
 - The server works best on a square display in fullscreen mode. If the browser viewport is not square, black bars will be visible.
 
 ## Known issues
