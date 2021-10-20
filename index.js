@@ -27,11 +27,11 @@ HEOS.then(connection => connection
 		},
 		response => {
 			console.log(response.payload)
-			// Some actions from the Spotify app (e.g. scrubbing, skipping) cause a 
-			// brief transitory flush of now_playing media.
-			// This causes two change events: the flush and the repopulating.
-			// The following code prevents the server from sending an SSE when the 
-			// payload.image_url would be empty.
+			// Some actions in the Spotify app (e.g. scrubbing, skipping) cause a brief flushing
+			// and repopulating of now_playing_media, both triggering a player_now_playing_changed event.
+			// After the flushing event, the image_url is empty. To prevent this empty string being sent,
+			// as well as the consequential brief flash of no album art on the client side, the following code
+			// was added.
 			if (response.payload.image_url != "") {
 				media = response.payload
 				sse.send(media.image_url)
