@@ -52,10 +52,6 @@ HEOS.then(connection => connection
 	)
 )
 
-app.use('/', (req, res, next) => {
-	console.log("Received a " + req.method + " request at " + req.url)
-	next()
-})
 app.get('/', (req, res) => {
 	res.set('Content-Type', 'text/html')
 	res.sendFile(__dirname + '/index.html')
