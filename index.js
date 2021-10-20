@@ -30,7 +30,7 @@ HEOS.then(connection => connection
 			// Some actions in the Spotify app (e.g. scrubbing, skipping) cause a brief flushing
 			// and repopulating of now_playing_media, both triggering a player_now_playing_changed event.
 			// After the flushing event, the image_url is empty. To prevent this empty string being sent,
-			// as well as the consequential brief flash of no album art on the client side, the following code
+			// as well as the resulting brief removal of album art on the client side, the following code
 			// was added.
 			if (response.payload.image_url != "") {
 				media = response.payload
