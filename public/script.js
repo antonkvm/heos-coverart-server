@@ -8,10 +8,10 @@ serverEvents.addEventListener('open', (event) => {
 serverEvents.onmessage = (event) => {
 	console.log("Event received!")
 	console.log('Event data: ' + event.data)
+	
 	body.style.backgroundImage = 'url(' + event.data + ')'
+
 	// note: empty event.data isn't actually empty, it contains two quotes: ""
-
-
 	if (event.data == "\"\"" && !isSleeping && count == 0) {
 		console.log("Event contains no url, starting sleep timer...")
 		sleepTimer()
