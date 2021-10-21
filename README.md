@@ -19,7 +19,7 @@ A node JS server using heos-api, express, and SSEs (server-sent events) to displ
 - The server works best on a square display in fullscreen mode. If the browser viewport is not square, black bars will be visible.
 
 ## Known issues
-- When you first connect with the server through your browser, no cover art is shown yet. Only after the first change event (e.g. skipping to next song) will your browser show some cover art.
+- When you first connect with the server through your browser, no cover art is shown yet. Only after the first change event (e.g. skipping to next song) will your browser show some cover art. The sleeptimer functionality will not kick in on this initial view.
 
 ## Possible improvements / ideas
 - Provide a seperate file for setting user-specific variables, like IP address and port.
