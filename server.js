@@ -1,7 +1,7 @@
 const heos = require('heos-api')
 const express = require('express')
 const app = express()
-const xPort = 5555
+const PORT = 5555
 const SSE = require('express-sse')
 const sse = new SSE()
 app.get('/stream', sse.init)
@@ -56,4 +56,4 @@ app.use(express.static('public'))
 // 	res.sendFile(__dirname + '/index.html')
 // })
 
-app.listen(xPort, () => console.log("Server is now listening to port %d.", xPort))
+app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
