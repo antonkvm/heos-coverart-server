@@ -1,6 +1,7 @@
 var serverEvents = new EventSource('http://localhost:5555/stream')
 const body = document.getElementById('changeMe')
 
+// show/hide cursor on user click
 body.addEventListener('click', (e) => {
 	if (body.style.cursor == 'none') {
 		body.style.cursor = 'default'
@@ -11,6 +12,10 @@ body.addEventListener('click', (e) => {
 
 serverEvents.addEventListener('open', (event) => {
 		console.log('SSE Verbindung wurde erfolgreich hergestellt.');
+		// start sleep timer if no album art is shown on start up:
+		if (!body.style.backgroundImage.includes("http")) {
+			sleepTimer()
+		}
 })
 
 serverEvents.onmessage = (event) => {
