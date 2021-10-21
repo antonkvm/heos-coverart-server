@@ -21,6 +21,9 @@ serverEvents.onmessage = (event) => {
 		console.log("Event contains no url, staying asleep...")
 	} else if (!isSleeping && count == 0) {
 		console.log("Event contains valid url, updating cover art...")
+	} else if (!isSleeping && count != 0) {
+		console.log("Event contains valid url, sleep countdown interrupted.")
+		stopCount()
 	} else if (isSleeping) {
 		wakeUp()
 	}
