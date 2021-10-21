@@ -1,5 +1,6 @@
 var serverEvents = new EventSource('http://localhost:5555/stream')
 const body = document.getElementById('changeMe')
+const msg = document.getElementById('heading')
 
 // show/hide cursor on user click
 body.addEventListener('click', (e) => {
@@ -12,10 +13,8 @@ body.addEventListener('click', (e) => {
 
 serverEvents.addEventListener('open', (event) => {
 		console.log('SSE Verbindung wurde erfolgreich hergestellt.');
-		// start sleep timer if no album art is shown on start up:
-		if (!body.style.backgroundImage.includes("http")) {
-			sleepTimer()
-		}
+		// show friendly start up message:
+		setMsgText("HEOS Cover Art Server started!\n\n To start showing cover art, play or skip to a song.")
 })
 
 serverEvents.onmessage = (event) => {
@@ -34,9 +33,10 @@ serverEvents.onmessage = (event) => {
 		console.log("Event contains no url, staying asleep...")
 	} else if (!isSleeping && count == 0) {
 		console.log("Event contains valid url, updating cover art...")
+		setMsgText("")
 	} else if (!isSleeping && count != 0) {
 		console.log("Event contains valid url, sleep countdown interrupted.")
-		stopCount()
+		stopCounter()
 	} else if (isSleeping) {
 		console.log("Event contains valid url, waking up...")
 		wakeUp()
@@ -51,7 +51,7 @@ var isSleeping = false
 function sleepTimer() {
 	let countdown = secondsToSleep - count
 	console.log("Sleeping in... " + countdown)
-	body.innerHTML = "Sleeping in... " + countdown
+	setMsgText("Sleeping in... " + countdown)
 	count++
 	if (count == secondsToSleep) {
 		sleep()
@@ -60,23 +60,28 @@ function sleepTimer() {
 		timer = setTimeout(sleepTimer, 1000)
 	}
 }
-function stopCount() {
+function stopCounter() {
 	clearTimeout(timer)
 	count = 0
 	console.log("Sleep timer stopped and reset.")
 	if (!isSleeping) {
-		body.innerHTML = ""
+		setMsgText("")
+		// body.innerHTML = ""
 	}
 }
 function sleep() {
 	isSleeping = true
 	console.log(`Counter has reached ${secondsToSleep} seconds, going to sleep now...`)
 	console.log("Sleeping... 😴")
-	body.innerHTML = "zzzzzzzzzzzzzzz"
-	stopCount()
+	setMsgText("zzzzz")
+	stopCounter()
 }
 function wakeUp() {
 	isSleeping = false
 	console.log("Waking up...")
-	body.innerHTML = ""
+	setMsgText("")
+}
+
+function setMsgText(someText) {
+	msg.innerText = someText
 }
