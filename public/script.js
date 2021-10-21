@@ -47,6 +47,9 @@ function stopCount() {
 	clearTimeout(timer)
 	count = 0
 	console.log("Sleep timer stopped and reset.")
+	if (!isSleeping) {
+		body.innerHTML = ""
+	}
 }
 function sleep() {
 	isSleeping = true
