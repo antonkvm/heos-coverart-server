@@ -58,4 +58,5 @@ function sleep() {
 function wakeUp() {
 	isSleeping = false
 	console.log("Waking up...")
+	body.innerHTML = ""
 }
