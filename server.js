@@ -10,7 +10,7 @@ var media
 HEOS = heos.discoverAndConnect()
 HEOS.then(connection => connection
 	.write('system', 'register_for_change_events', {enable: 'on'})
-	.write('player', 'get_now_playing_media', {pid: 781222528})
+	// .write('player', 'get_now_playing_media', {pid: 781222528})
 	.on({	
 			commandGroup: 'event',
 			command: 'player_now_playing_changed'
@@ -27,11 +27,8 @@ HEOS.then(connection => connection
 		},
 		response => {
 			console.log(response.payload)
-			// Some actions in the Spotify app (e.g. scrubbing, skipping) cause a brief flushing
-			// and repopulating of now_playing_media, both triggering a player_now_playing_changed event.
-			// After the flushing event, the image_url is empty. To prevent this empty string being sent,
-			// as well as the resulting brief removal of album art on the client side, the following code
-			// was added.
+			// Some actions in the spotify app cause erroneous now_playing change events with empty urls.
+			// The following code prevents these faulty events from triggering a server sent event.
 			if (response.payload.image_url != "") {
 				media = response.payload
 				sse.send(media.image_url)
@@ -52,9 +49,11 @@ HEOS.then(connection => connection
 	)
 )
 
-app.get('/', (req, res) => {
-	res.set('Content-Type', 'text/html')
-	res.sendFile(__dirname + '/index.html')
-})
+app.use(express.static('public'))
+
+// app.get('/', (req, res) => {
+// 	res.set('Content-Type', 'text/html')
+// 	res.sendFile(__dirname + '/index.html')
+// })
 
 app.listen(xPort, () => console.log("Server is now listening to port %d.", xPort))
