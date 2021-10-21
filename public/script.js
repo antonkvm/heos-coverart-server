@@ -38,6 +38,7 @@ serverEvents.onmessage = (event) => {
 		console.log("Event contains valid url, sleep countdown interrupted.")
 		stopCount()
 	} else if (isSleeping) {
+		console.log("Event contains valid url, waking up...")
 		wakeUp()
 	}
 }
