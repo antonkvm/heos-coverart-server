@@ -1,6 +1,14 @@
 var serverEvents = new EventSource('http://localhost:5555/stream')
 const body = document.getElementById('changeMe')
 
+body.addEventListener('click', (e) => {
+	if (body.style.cursor == 'none') {
+		body.style.cursor = 'default'
+	} else {
+		body.style.cursor = 'none'
+	}
+})
+
 serverEvents.addEventListener('open', (event) => {
 		console.log('SSE Verbindung wurde erfolgreich hergestellt.');
 })
@@ -10,7 +18,7 @@ serverEvents.onmessage = (event) => {
 	console.log('Event data: ' + event.data)
 	
 	body.style.backgroundImage = 'url(' + event.data + ')'
-
+	
 	// note: empty event.data isn't actually empty, it contains two quotes: ""
 	if (event.data == "\"\"" && !isSleeping && count == 0) {
 		console.log("Event contains no url, starting sleep timer...")
