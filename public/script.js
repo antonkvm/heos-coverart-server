@@ -51,6 +51,11 @@ serverEvents.onmessage = (event) => {
 	}
 }
 
+/**
+ * SLEEP TIMER
+ * The code below handles the sleep timer functionality
+ */
+
 var timer
 const secondsToSleep = 20
 var count = 0
@@ -89,12 +94,16 @@ function wakeUp() {
 	count = 0
 }
 
+/**
+ * Manipulating the DOM
+ * The functions below manipulate the DOM
+ */
+
 // default parameter value is empty string:
 function setMsgText(someText = '') {
 	msg.innerText = someText
 }
 
 function setImageSrc(imageUrl) {
-	// body.style.backgroundImage = `url(${imageUrl})`
 	image.style.backgroundImage = `url(${imageUrl})`
 }
