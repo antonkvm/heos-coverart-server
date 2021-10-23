@@ -31,8 +31,7 @@ HEOS.then(connection => connection
 			/** 
 			 * Some actions in the spotify app cause erroneous empty events being sent, preventing this with:
 			 * Also only send new metadata when it is different from the previous one, or the first one:
-			 * @todo caveat: waking up or stopping countdown requires fresh song to play, otherwise it wont be sent
-			 * bc its the same as the previous one
+			 * @todo caveat: interrupting sleep or counting doesn't work without song change, bc it won't get sent 
 			 */
 			if (payload.artist != '' && firstTime) {
 				previous = payload
