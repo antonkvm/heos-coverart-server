@@ -5,6 +5,8 @@ const PORT = 5555
 const SSE = require('express-sse')
 const sse = new SSE()
 app.get('/stream', sse.init)
+var previous
+var firstTime = true
 
 HEOS = heos.discoverAndConnect()
 HEOS.then(connection => connection
@@ -25,10 +27,18 @@ HEOS.then(connection => connection
 			command: 'get_now_playing_media'
 		},
 		response => {
-			console.log(response.payload)
+			let payload = response.payload
 			// Some actions in the spotify app cause erroneous empty events being sent, preventing this with:
-			if (response.payload.artist != '') {
-				sse.send(response.payload)
+			// Also only send new metadata when it is different from the previous one, or the first one:
+			if (payload.artist != '' && firstTime) {
+				previous = payload
+				firstTime = false
+				console.log(payload)
+				sse.send(payload)
+			} else if (payload.artist != '' && !firstTime && payload.song != previous.song) {
+				previous = payload
+				console.log(payload)
+				sse.send(payload)
 			}
 		}
 	)
