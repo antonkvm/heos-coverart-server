@@ -72,6 +72,7 @@ serverEvents.onmessage = (event) => {
  * The code below handles the sleep timer functionality
  * @todo Modularize this functionality. Will probably also streamline code and expose some dumb shit
  * @todo Still some bugs in here with edge cases i think
+ * BIG QUESTION: DO I EVEN NEED A SLEEP TIMER?
  */
 
 var timer
@@ -125,6 +126,7 @@ function setMessageBody(someText = '') {
  * Replaces the current cover art image with a new one.
  * @param imageUrl The url to the new cover art image. Defaults to empty string.
  * @todo If url param is empty, image should immediately go to black, instead of on next img iteration
+ * @idea If url is empty, set background of messageContainer to black and make it cover everything else!
  */
 function setImageUrl(imageUrl = '') {
 
