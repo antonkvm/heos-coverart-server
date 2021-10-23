@@ -4,7 +4,6 @@ const msgContainer = document.getElementById('messageContainer')
 const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
-var firstErrorSinceLastConnect = true
 
 // show/hide cursor on user click
 body.addEventListener('click', (e) => {
@@ -28,14 +27,10 @@ serverEvents.addEventListener('open', (event) => {
 	firstConnection = false
 	firstErrorSinceLastConnect = true
 })
-/** @todo Screen does not go to black on connection loss, fix pls. */
 serverEvents.onerror = (error) => {
 	setMessageTitle('Connection to server lost')
 	setMessageBody('Trying to reconnect...')
-	if (firstErrorSinceLastConnect) {
-		setImageUrl()
-		firstErrorSinceLastConnect= false
-	}
+	setImageUrl()
 }
 
 serverEvents.onmessage = (event) => {
@@ -76,6 +71,7 @@ serverEvents.onmessage = (event) => {
  * SLEEP TIMER
  * The code below handles the sleep timer functionality
  * @todo Modularize this functionality. Will probably also streamline code and expose some dumb shit
+ * @todo Still some bugs in here with edge cases i think
  */
 
 var timer
