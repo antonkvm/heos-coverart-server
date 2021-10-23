@@ -37,11 +37,15 @@ HEOS.then(connection => connection
 				previous = payload
 				firstTime = false
 				console.log(payload)
+				console.log('First valid media update event since server startup, event sent to client.')
 				sse.send(payload)
 			} else if (payload.artist != '' && !firstTime && payload.song != previous.song) {
 				previous = payload
 				console.log(payload)
+				console.log('New media is valid and different from previous. Sent to client.')
 				sse.send(payload)
+			} else {
+				console.log('Media payload identical to previous. NOT sending to client.')
 			}
 		}
 	)
