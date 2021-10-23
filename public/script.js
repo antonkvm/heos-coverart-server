@@ -75,6 +75,7 @@ serverEvents.onmessage = (event) => {
 /**
  * SLEEP TIMER
  * The code below handles the sleep timer functionality
+ * @todo Modularize this functionality. Will probably also streamline code and expose some dumb shit
  */
 
 var timer
