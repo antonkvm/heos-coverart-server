@@ -6,6 +6,7 @@ body {
 	background-color: black;
 }
 #messageContainer {
+	position: absolute;
 	display: block;
 	text-align: center;
 	width: 100%;

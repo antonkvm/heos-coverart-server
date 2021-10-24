@@ -4,6 +4,7 @@ const msgContainer = document.getElementById('messageContainer')
 const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
+var currentImageURL = ''
 
 // show/hide cursor on user click
 body.addEventListener('click', (e) => {
@@ -19,10 +20,10 @@ serverEvents.addEventListener('open', (event) => {
 	// show friendly welcome message on first visit (only initial img elem won't have src attribute)
 	if (firstConnection) {
 		setMessageTitle("HEOS COVER ART SERVER")
-		setMessageBody("Connection successful!\nTo start showing cover art, play or skip to a song")
+		setMessageBody("Connection successful!\nTo start showing cover art, play a song")
 	} else {
 		setMessageTitle("Reconnect successfull!")
-		setMessageBody("Play a new song to show cover art again.")
+		setMessageBody("To show cover art again, either press play on any song.")
 	}
 	firstConnection = false
 	firstErrorSinceLastConnect = true
@@ -42,7 +43,7 @@ serverEvents.onmessage = (event) => {
 	let msgHasValidData = ('artist' in message) && message.artist != ''
 	let msgSaysStop = 'stopped' in message
 
-	// *** States/events matrix and desired results (see PDF for more info) ***
+	/**  States/events matrix and desired results (see PDF for more info)  **/
 	// Awake, non-counting client gets new album art, updates background:
 	if (!isSleeping && !isCounting && msgHasValidData) {
 		setImageUrl(message.image_url)
@@ -50,29 +51,26 @@ serverEvents.onmessage = (event) => {
 		setMessageTitle()
 		setMessageBody()
 	}
-	// Awake, non-counting client gets message that AVR turned off and starts sleeptimer:
+	// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
 	if (!isSleeping && !isCounting && msgSaysStop) {
 		setImageUrl()
 		startTimer()
 	}
-	// Client counting down to sleep, but gets new album art, stops timer and updates background:
+	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
 	if (!isSleeping && isCounting && msgHasValidData) {
 		setImageUrl(message.image_url)
 		stopTimer()
 	}
-	// Sleeping client gets woken up by new album art:
+	// Sleeping client gets woken up by any (new or not) album art:
 	if (isSleeping && !isCounting && msgHasValidData) {
 		setImageUrl(message.image_url)
 		wakeUp()
-	}
+	}	
 }
 
 /**
  * SLEEP TIMER
  * The code below handles the sleep timer functionality
- * @todo Modularize this functionality. Will probably also streamline code and expose some dumb shit
- * @todo Still some bugs in here with edge cases i think
- * BIG QUESTION: DO I EVEN NEED A SLEEP TIMER?
  */
 
 var timer
@@ -124,40 +122,55 @@ function setMessageBody(someText = '') {
 
 /**
  * Replaces the current cover art image with a new one.
+ * If the passed URL is empty, screen goes black. If not, any black overlay is removed.
+ * If the passed URL is the same as the one currently shown, no DOM changes are made.
  * @param imageUrl The url to the new cover art image. Defaults to empty string.
- * @todo If url param is empty, image should immediately go to black, instead of on next img iteration
- * @idea If url is empty, set background of messageContainer to black and make it cover everything else!
  */
 function setImageUrl(imageUrl = '') {
 
-	let oldElem = document.querySelector('img')
-	let newElem = document.createElement('img')
-	
-	// style new image, initially hidden by js-hide class:
-	newElem.setAttribute('src', imageUrl)
-	newElem.classList.add('js-hide')
+	// go to black screen when imageUrl is empty:
+	if (imageUrl == '') {
+		msgContainer.style.backgroundColor = 'black'
+	} else {
+		// when imageUrl is not empty, remove black screen:
+		msgContainer.style.removeProperty('background-color')
 
-	// insert before message container:
-	body.insertBefore(newElem, msgContainer)
- 
-	/**
-	 * Wait for new image to load, then start transition to reveal/hide new/old image.
-	 * I was to lazy to test if the load event actually fires, but it sure seems like it.
-	 */
-	newElem.onload = () => {
-		oldElem.classList.add('js-hide')
-		newElem.classList.remove('js-hide')
+		// only update image if it's a new one:
+		if (imageUrl != currentImageURL) {
+			// save current image URL:
+			currentImageURL = imageUrl
 
-		setTimeout(() => {
-			oldElem.remove()
-		}, 1000)
+			let oldElem = document.querySelector('img')
+			let newElem = document.createElement('img')
+			
+			// style new image, initially hidden by js-hide class:
+			newElem.setAttribute('src', imageUrl)
+			newElem.classList.add('js-hide')
+		
+			// insert before message container:
+			body.insertBefore(newElem, msgContainer)
+			
+			/**
+			 * Wait for new image to load, then start transition to reveal/hide new/old image.
+			 * I was to lazy to test if the load event actually fires, but it sure seems like it.
+			 */
+			newElem.onload = () => {
+				oldElem.classList.add('js-hide')
+				newElem.classList.remove('js-hide')
+		
+				setTimeout(() => {
+					oldElem.remove()
+				}, 1000)
+			}
+			// flush unnecessary img elements if need be:
+			if (document.querySelectorAll('img').length > 2) {
+				let deletable = Array.from(document.querySelectorAll('img'))
+				deletable.pop()
+				deletable.map(node => node.remove())
+			}
+		}
 	}
-	// flush unnecessary img elements if need be:
-	if (document.querySelectorAll('img').length > 2) {
-		let deletable = Array.from(document.querySelectorAll('img'))
-		deletable.pop()
-		deletable.map(node => node.remove())
-	}
+
 }
 function getImageUrl() {
 	return Array.from(document.querySelectorAll('img')).pop().getAttribute('src')
