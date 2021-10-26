@@ -39,11 +39,22 @@ HEOS.then(connection => connection
 		response => {
 			let state = response.heos.message.parsed.state
 			console.log(state)
-			if (state == 'stop') sse.send({stopped: 'stopped'})
+			if (state == 'stop') {
+				sse.send({stopped: 'stopped'})
+				// --start screen blanking countdown here--
+			}
 			// if music starts playing, request metadata and send it to client:
 			if (state == 'play') connection.write('player', 'get_now_playing_media', {pid: 781222528})
 		}
 	)
+	.onClose(hadError => {
+		// --start screen blanking countdown here--
+		if (hadError) {
+			sse.send({disconnected: 'closedWithError'})
+		} else {
+			sse.send({disconnected: 'closedWithoutError'})
+		}
+	})
 )
 
 app.use(express.static('public'))

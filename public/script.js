@@ -12,7 +12,7 @@ serverEvents.addEventListener('open', (event) => {
 	// show friendly welcome message on first visit (only initial img elem won't have src attribute)
 	if (firstConnection) {
 		setMessageTitle("HEOS COVER ART SERVER")
-		setMessageBody("Connection successful!\nTo start showing cover art, play a song")
+		setMessageBody("Connection successful!\nTo start showing cover art, play a song.")
 	} else {
 		setMessageTitle("Reconnect successfull!")
 		setMessageBody("To show cover art again, either press play on any song.")
@@ -21,7 +21,7 @@ serverEvents.addEventListener('open', (event) => {
 	firstErrorSinceLastConnect = true
 })
 serverEvents.onerror = (error) => {
-	setMessageTitle('Connection to server lost')
+	setMessageTitle('Connection to node.js server lost')
 	setMessageBody('Trying to reconnect...')
 	setImageUrl()
 }
@@ -46,6 +46,7 @@ serverEvents.onmessage = (event) => {
 	// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
 	if (!isSleeping && !isCounting && msgSaysStop) {
 		setImageUrl()
+		setMessageBody()
 		startTimer()
 	}
 	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
@@ -57,7 +58,17 @@ serverEvents.onmessage = (event) => {
 	if (isSleeping && !isCounting && msgHasValidData) {
 		setImageUrl(message.image_url)
 		wakeUp()
-	}	
+	}
+	// if server lost connection to HEOS device:
+	if ('disconnected' in message) {
+		setImageUrl()
+		startTimer()
+		if (message.disconnected == 'closedWithError') {
+			setMessageBody('Connection to HEOS device was closed with transmission error.')
+		} else if (message.disconnected == 'closedWithoutError') {
+			setMessageBody('Connection to HEOS device was closed without transmission error.')
+		}
+	}
 }
 
 /**
@@ -72,11 +83,8 @@ var remaining
 var isSleeping = false
 
 function startTimer() {
-	setImageUrl()
 	remaining = secondsToSleep - count
-	console.log("Sleeping in... " + remaining)
 	setMessageTitle("Sleeping in... " + remaining)
-	setMessageBody()
 	count++
 	if (count == secondsToSleep) {
 		sleep()
@@ -92,16 +100,15 @@ function stopTimer() {
 	if (!isSleeping) setMessageTitle()
 }
 function sleep() {
-	console.log(`Counter has reached ${secondsToSleep} seconds, going to sleep now...`)
-	console.log("Sleeping... 😴")
 	isSleeping = true
 	setMessageTitle("😴")
+	setMessageBody()
 	count = 0
 }
 function wakeUp() {
 	console.log("Waking up...")
 	isSleeping = false
-	setMessageTitle("")
+	setMessageTitle()
 	count = 0
 }
 
