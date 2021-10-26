@@ -48,6 +48,7 @@ serverEvents.onmessage = (event) => {
 		setImageUrl()
 		setMessageBody()
 		startTimer()
+		setMessageBody('Music playback was stopped.')
 	}
 	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
 	if (!isSleeping && isCounting && msgHasValidData) {
@@ -135,13 +136,16 @@ function setImageUrl(imageUrl = '') {
 		// when imageUrl is not empty, remove black screen:
 		msgContainer.style.removeProperty('background-color')
 
-		// if fading is turned off -> no transition effect
-		if (fadingOn) {
-			// only update image if it's a new one:
-			if (imageUrl != currentImageURL) {
-				// save current image URL:
-				currentImageURL = imageUrl
-	
+		// only update image if it's a new one:
+		if (imageUrl != currentImageURL) {
+
+			// save current image URL:
+			currentImageURL = imageUrl
+
+			// if fading is turned off -> no transition effect
+			if (!fadingOn) {
+				document.querySelector('img').setAttribute('src', imageUrl)				
+			} else {
 				let oldElem = document.querySelector('img')
 				let newElem = document.createElement('img')
 				
@@ -171,13 +175,8 @@ function setImageUrl(imageUrl = '') {
 					deletable.map(node => node.remove())
 				}
 			}
-
-		} else {
-			document.querySelector('img').setAttribute('src', imageUrl)
 		}
-
 	}
-
 }
 function getImageUrl() {
 	return Array.from(document.querySelectorAll('img')).pop().getAttribute('src')
