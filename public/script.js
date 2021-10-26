@@ -6,15 +6,6 @@ const msgBody = document.querySelector('p')
 var firstConnection = true
 var currentImageURL = ''
 
-// show/hide cursor on user click
-body.addEventListener('click', (e) => {
-	if (body.style.cursor == 'none') {
-		body.style.cursor = 'default'
-	} else {
-		body.style.cursor = 'none'
-	}
-})
-
 serverEvents.addEventListener('open', (event) => {
 	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
 	// show friendly welcome message on first visit (only initial img elem won't have src attribute)

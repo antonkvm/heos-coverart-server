@@ -1,6 +1,7 @@
 body, html {
 	height: 100%;
 	margin: 0;
+	cursor: none;
 }
 body {
 	background-color: black;
