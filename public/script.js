@@ -70,6 +70,11 @@ serverEvents.onmessage = (event) => {
 			setMessageBody('Connection to HEOS device was closed without transmission error.')
 		}
 	}
+	if ('noHEOSFoundOnNetwork' in message) {
+		setImageUrl()
+		setMessageTitle('No HEOS device found on network!')
+		setMessageBody('Check if the device is plugged into power and connected with the network, then restart the server via SSH.')
+	}
 }
 
 /**
