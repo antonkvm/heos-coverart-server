@@ -5,6 +5,7 @@ const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
 var currentImageURL = ''
+const fadingOn = false
 
 serverEvents.addEventListener('open', (event) => {
 	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
@@ -127,40 +128,47 @@ function setImageUrl(imageUrl = '') {
 		// when imageUrl is not empty, remove black screen:
 		msgContainer.style.removeProperty('background-color')
 
-		// only update image if it's a new one:
-		if (imageUrl != currentImageURL) {
-			// save current image URL:
-			currentImageURL = imageUrl
+		// if fading is turned off -> no transition effect
+		if (fadingOn) {
+			// only update image if it's a new one:
+			if (imageUrl != currentImageURL) {
+				// save current image URL:
+				currentImageURL = imageUrl
+	
+				let oldElem = document.querySelector('img')
+				let newElem = document.createElement('img')
+				
+				// style new image, initially hidden by js-hide class:
+				newElem.setAttribute('src', imageUrl)
+				newElem.classList.add('js-hide')
+			
+				// insert before message container:
+				body.insertBefore(newElem, msgContainer)
+				
+				/**
+				 * Wait for new image to load, then start transition to reveal/hide new/old image.
+				 * I was to lazy to test if the load event actually fires, but it sure seems like it.
+				 */
+				newElem.onload = () => {
+					oldElem.classList.add('js-hide')
+					newElem.classList.remove('js-hide')
+			
+					setTimeout(() => {
+						oldElem.remove()
+					}, 1000)
+				}
+				// flush unnecessary img elements if need be:
+				if (document.querySelectorAll('img').length > 2) {
+					let deletable = Array.from(document.querySelectorAll('img'))
+					deletable.pop()
+					deletable.map(node => node.remove())
+				}
+			}
 
-			let oldElem = document.querySelector('img')
-			let newElem = document.createElement('img')
-			
-			// style new image, initially hidden by js-hide class:
-			newElem.setAttribute('src', imageUrl)
-			newElem.classList.add('js-hide')
-		
-			// insert before message container:
-			body.insertBefore(newElem, msgContainer)
-			
-			/**
-			 * Wait for new image to load, then start transition to reveal/hide new/old image.
-			 * I was to lazy to test if the load event actually fires, but it sure seems like it.
-			 */
-			newElem.onload = () => {
-				oldElem.classList.add('js-hide')
-				newElem.classList.remove('js-hide')
-		
-				setTimeout(() => {
-					oldElem.remove()
-				}, 1000)
-			}
-			// flush unnecessary img elements if need be:
-			if (document.querySelectorAll('img').length > 2) {
-				let deletable = Array.from(document.querySelectorAll('img'))
-				deletable.pop()
-				deletable.map(node => node.remove())
-			}
+		} else {
+			document.querySelector('img').setAttribute('src', imageUrl)
 		}
+
 	}
 
 }
