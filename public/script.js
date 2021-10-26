@@ -75,6 +75,7 @@ function startTimer() {
 	remaining = secondsToSleep - count
 	console.log("Sleeping in... " + remaining)
 	setMessageTitle("Sleeping in... " + remaining)
+	setMessageBody()
 	count++
 	if (count == secondsToSleep) {
 		sleep()
