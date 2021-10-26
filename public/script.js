@@ -14,14 +14,15 @@ serverEvents.addEventListener('open', (event) => {
 		setMessageTitle("HEOS COVER ART SERVER")
 		setMessageBody("Connection successful!\nTo start showing cover art, play a song.")
 	} else {
-		setMessageTitle("Reconnect successfull!")
+		setMessageTitle("Successfully reconnected to nodeJS server!")
 		setMessageBody("To show cover art again, either press play on any song.")
 	}
 	firstConnection = false
 	firstErrorSinceLastConnect = true
 })
 serverEvents.onerror = (error) => {
-	setMessageTitle('Connection to node.js server lost')
+	stopTimer()
+	setMessageTitle('Connection to nodeJS server lost!')
 	setMessageBody('Trying to reconnect...')
 	setImageUrl()
 }
@@ -92,7 +93,7 @@ function startTimer() {
 	remaining = secondsToSleep - count
 	setMessageTitle("Sleeping in... " + remaining)
 	count++
-	if (count == secondsToSleep) {
+	if (remaining == 0) {
 		sleep()
 	} else {
 		// with parantheses after timedCount, everything happens immediately and not once every second...
