@@ -43,10 +43,10 @@ HEOS.then(connection => connection
 			let metadata = res.payload
 			// only send metadata if non-empty:
 			if (metadata.artist != '') {
-				sse.send(metadata)
 				// stop any sleep timer and set backlight to 'on'
 				stopCounting()
 				beWoke()
+				sse.send(metadata)
 			}
 		}
 	)
@@ -58,16 +58,16 @@ HEOS.then(connection => connection
 			let state = res.heos.message.parsed.state
 			console.log(state)
 			if (state == 'stop') {
-				sse.send({stopped: 'stopped'})
 				// start screen blanking countdown here
 				startSleepTimer()
+				sse.send({stopped: 'stopped'})
 			}
 			// if music starts playing, request metadata and send it to client:
 			if (state == 'play') {
-				connection.write('player', 'get_now_playing_media', {pid: myPid})
 				// stop any sleep timer and set backlight to 'on'
 				stopCounting()
 				beWoke()
+				connection.write('player', 'get_now_playing_media', {pid: myPid})
 			}
 		}
 	)
