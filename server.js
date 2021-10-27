@@ -58,13 +58,13 @@ HEOS.then(connection => connection
 			let state = res.heos.message.parsed.state
 			console.log(state)
 			if (state == 'stop') {
-				// start screen blanking countdown here
+				// start screen blanking countdown:
 				startSleepTimer()
 				sse.send({stopped: 'stopped'})
 			}
 			// if music starts playing, request metadata and send it to client:
 			if (state == 'play') {
-				// stop any sleep timer and set backlight to 'on'
+				// stop any sleep timer and set backlight to 'on':
 				stopCounting()
 				beWoke()
 				connection.write('player', 'get_now_playing_media', {pid: myPid})
@@ -72,7 +72,8 @@ HEOS.then(connection => connection
 		}
 	)
 	.onClose(hadError => {
-		// --start screen blanking countdown here--
+		// start screen blanking countdown here
+		startSleepTimer()
 		if (hadError) {
 			sse.send({disconnected: 'closedWithError'})
 		} else {
@@ -86,7 +87,7 @@ app.use(express.static('public'))
 app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
 
 // Sleep timer:
-const secondsToSleep = 22
+const secondsToSleep = 21
 let count = 0
 let timer
 let remaining
@@ -95,7 +96,7 @@ function startSleepTimer() {
 	remaining = secondsToSleep - count
 	count++
 	if (remaining == 0) {
-		exec('su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+		exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
 		count = 0
 	} else {
 		timer = setTimeout(startSleepTimer, 1000)
@@ -106,9 +107,5 @@ function stopCounting() {
 	count = 0
 }
 function beWoke() {
-	exec('su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
+	exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
 }
-
-// try next:
-// exec('su -c "echo 1 >/sys/class/backlight/rpi_backlight/brightness"')
-// exec('su -c "echo 1 >/sys/class/backlight/rpi_backlight/brightness"')
