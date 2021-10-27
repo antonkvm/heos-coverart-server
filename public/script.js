@@ -9,17 +9,19 @@ const fadingOn = false
 
 serverEvents.addEventListener('open', (event) => {
 	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
-	// show friendly welcome message on first visit (only initial img elem won't have src attribute)
 	if (firstConnection) {
+		// "Welcome" screen:
 		setMessageTitle("HEOS COVER ART SERVER")
 		setMessageBody("Connection successful!\nTo start showing cover art, play a song.")
 	} else {
+		// "Reconnect successful" screen:
 		setMessageTitle("Successfully reconnected to nodeJS server!")
 		setMessageBody("To show cover art again, either press play on any song.")
 	}
 	firstConnection = false
 	firstErrorSinceLastConnect = true
 })
+// "disconnected from nodeJS server" screen:
 serverEvents.onerror = (error) => {
 	stopTimer()
 	setMessageTitle('Connection to nodeJS server lost!')
@@ -71,6 +73,7 @@ serverEvents.onmessage = (event) => {
 			setMessageBody('Connection to HEOS device was closed without transmission error.')
 		}
 	}
+	// no heos device found on network:
 	if ('noHEOSFoundOnNetwork' in message) {
 		setImageUrl()
 		setMessageTitle('No HEOS device found on network!')
