@@ -16,7 +16,7 @@ serverEvents.addEventListener('open', (event) => {
 	} else {
 		// "Reconnect successful" screen:
 		setMessageTitle("Successfully reconnected to nodeJS server!")
-		setMessageBody("To show cover art again, either press play on any song.")
+		setMessageBody("To show cover art again, press play on any song.")
 	}
 	firstConnection = false
 	firstErrorSinceLastConnect = true
