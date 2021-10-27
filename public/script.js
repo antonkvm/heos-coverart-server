@@ -5,6 +5,7 @@ const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
 var currentImageURL = ''
+// set this to true if you want a fading transition between cover art images:
 const fadingOn = false
 
 serverEvents.addEventListener('open', (event) => {
