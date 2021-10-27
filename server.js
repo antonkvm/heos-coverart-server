@@ -95,7 +95,7 @@ function startSleepTimer() {
 	remaining = secondsToSleep - count
 	count++
 	if (remaining == 0) {
-		exec("sudo su -c 'echo 0 > /sys/class/backlight/rpi_backlight/brightness'")
+		exec("su -c 'echo 0 > /sys/class/backlight/rpi_backlight/brightness'")
 		count = 0
 	} else {
 		timer = setTimeout(startSleepTimer, 1000)
@@ -106,5 +106,5 @@ function stopCounting() {
 	count = 0
 }
 function beWoke() {
-	exec("sudo su -c 'echo 1 > /sys/class/backlight/rpi_backlight/brightness'")
+	exec("su -c 'echo 1 > /sys/class/backlight/rpi_backlight/brightness'")
 }
