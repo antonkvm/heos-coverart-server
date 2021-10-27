@@ -5,6 +5,7 @@ const PORT = 5555
 const SSE = require('express-sse')
 const sse = new SSE()
 app.get('/stream', sse.init)
+const { exec } = require('child_process')
 var myPid
 
 HEOS = heos.discoverAndConnect()
@@ -43,6 +44,9 @@ HEOS.then(connection => connection
 			// only send metadata if non-empty:
 			if (metadata.artist != '') {
 				sse.send(metadata)
+				// stop any sleep timer and set backlight to 'on'
+				stopCounting()
+				beWoke()
 			}
 		}
 	)
@@ -55,10 +59,16 @@ HEOS.then(connection => connection
 			console.log(state)
 			if (state == 'stop') {
 				sse.send({stopped: 'stopped'})
-				// --start screen blanking countdown here--
+				// start screen blanking countdown here
+				startSleepTimer()
 			}
 			// if music starts playing, request metadata and send it to client:
-			if (state == 'play') connection.write('player', 'get_now_playing_media', {pid: myPid})
+			if (state == 'play') {
+				connection.write('player', 'get_now_playing_media', {pid: myPid})
+				// stop any sleep timer and set backlight to 'on'
+				stopCounting()
+				beWoke()
+			}
 		}
 	)
 	.onClose(hadError => {
@@ -74,3 +84,27 @@ HEOS.then(connection => connection
 app.use(express.static('public'))
 
 app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
+
+// Sleep timer:
+const secondsToSleep = 22
+let count = 0
+let timer
+let remaining
+
+function startSleepTimer() {
+	remaining = secondsToSleep - count
+	count++
+	if (remaining == 0) {
+		exec("sudo su -c 'echo 0 > /sys/class/backlight/rpi_backlight/brightness'")
+		count = 0
+	} else {
+		timer = setTimeout(startSleepTimer, 1000)
+	}
+}
+function stopCounting() {
+	clearTimeout(timer)
+	count = 0
+}
+function beWoke() {
+	exec("sudo su -c 'echo 1 > /sys/class/backlight/rpi_backlight/brightness'")
+}
