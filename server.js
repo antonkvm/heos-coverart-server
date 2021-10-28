@@ -33,7 +33,7 @@ function startSleepTimer() {
 		timer = setTimeout(startSleepTimer, 1000)
 	}
 }
-function stopCounting() {
+function stopTimer() {
 	clearTimeout(timer)
 	timerRunning = false
 	count = 0
@@ -82,11 +82,8 @@ function connectToHEOS() {
 				let metadata = res.payload
 				// only send metadata if non-empty:
 				if (metadata.artist != '') {
-					// stop any sleep timer and set backlight to 'on'
-					if (timerRunning) {
-						stopCounting()
-						turnOnBacklight()
-					}
+					if (timerRunning) stopTimer()
+					turnOnBacklight()
 					sse.send(metadata)
 				}
 			}
@@ -105,11 +102,8 @@ function connectToHEOS() {
 				}
 				// if music starts playing, request metadata and send it to client:
 				if (state == 'play') {
-					// stop any sleep timer and set backlight to 'on':
-					if (timerRunning) {
-						stopCounting()
-						turnOnBacklight()
-					}
+					if (timerRunning) stopTimer()
+					turnOnBacklight()
 					connection.write('player', 'get_now_playing_media', {pid: myPid})
 				}
 			}
