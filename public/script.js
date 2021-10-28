@@ -1,6 +1,6 @@
 var serverEvents = new EventSource('http://localhost:5555/stream')
 const body = document.querySelector('body')
-const msgContainer = document.getElementById('messageContainer')
+const container = document.getElementById('container')
 const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
@@ -141,10 +141,10 @@ function setImageUrl(imageUrl = '') {
 
 	// go to black screen when imageUrl is empty:
 	if (imageUrl == '') {
-		msgContainer.style.backgroundColor = 'black'
+		container.style.backgroundColor = 'black'
 	} else {
 		// when imageUrl is not empty, remove black screen:
-		msgContainer.style.removeProperty('background-color')
+		container.style.removeProperty('background-color')
 
 		// only update image if it's a new one:
 		if (imageUrl != currentImageURL) {
@@ -164,7 +164,7 @@ function setImageUrl(imageUrl = '') {
 				newElem.classList.add('js-hide')
 			
 				// insert before message container:
-				body.insertBefore(newElem, msgContainer)
+				body.insertBefore(newElem, container)
 				
 				/**
 				 * Wait for new image to load, then start transition to reveal/hide new/old image.
