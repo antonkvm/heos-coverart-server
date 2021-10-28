@@ -11,6 +11,7 @@ body {
 	height: 100%;
 	font-family: Optima, sans-serif;
 	color: white;
+	text-align: center;
 }
 #message {
 	width: 80%;
