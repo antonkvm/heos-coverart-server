@@ -7,6 +7,7 @@ const sse = new SSE()
 app.get('/stream', sse.init)
 const { exec } = require('child_process')
 var myPid
+const backlightControlActive = true
 
 connectToHEOS()
 
@@ -24,7 +25,7 @@ function startSleepTimer() {
 	remaining = secondsToSleep - count
 	count++
 	if (remaining == 0) {
-		exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+		if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
 		console.log('Pi backlight turned off')
 		count = 0
 	} else {
@@ -36,7 +37,7 @@ function stopCounting() {
 	count = 0
 }
 function beWoke() {
-	exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
+	if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
 	console.log('Pi backlight turned on')
 }
 
