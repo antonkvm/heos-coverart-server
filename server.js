@@ -18,22 +18,26 @@ app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
 // Sleep timer:
 const secondsToSleep = 21
 let count = 0
-let timer
+let timer = null
 let remaining
 
 function startSleepTimer() {
-	remaining = secondsToSleep - count
-	count++
-	if (remaining == 0) {
-		if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
-		console.log('Pi backlight turned off')
-		count = 0
-	} else {
-		timer = setTimeout(startSleepTimer, 1000)
+	// only start a new timer if any previous one has been cleared (fixes issues with multiple calls of this function)
+	if (timer === null) {
+		remaining = secondsToSleep - count
+		count++
+		if (remaining == 0) {
+			if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+			console.log('Pi backlight turned off')
+			count = 0
+		} else {
+			timer = setTimeout(startSleepTimer, 1000)
+		}
 	}
 }
 function stopCounting() {
 	clearTimeout(timer)
+	timer = null
 	count = 0
 }
 function beWoke() {
