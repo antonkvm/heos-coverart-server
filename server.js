@@ -20,29 +20,31 @@ const secondsToSleep = 21
 let count = 0
 let timer = null
 let remaining
+let timerRunning = false
 
 function startSleepTimer() {
-	// only start a new timer if any previous one has been cleared (fixes issues with multiple calls of this function)
-	if (timer === null) {
-		remaining = secondsToSleep - count
-		count++
-		if (remaining == 0) {
-			if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
-			console.log('Pi backlight turned off')
-			count = 0
-		} else {
-			timer = setTimeout(startSleepTimer, 1000)
-		}
+	timerRunning = true
+	remaining = secondsToSleep - count
+	count++
+	if (remaining == 0) {
+		if (backlightControlActive) turnOffBacklight()
+		count = 0
+	} else {
+		timer = setTimeout(startSleepTimer, 1000)
 	}
 }
 function stopCounting() {
 	clearTimeout(timer)
-	timer = null
+	timerRunning = false
 	count = 0
 }
-function beWoke() {
+function turnOnBacklight() {
 	if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
 	console.log('Pi backlight turned on')
+}
+function turnOffBacklight() {
+	exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+	console.log('Pi backlight turned off')
 }
 
 function connectToHEOS() {
@@ -81,8 +83,10 @@ function connectToHEOS() {
 				// only send metadata if non-empty:
 				if (metadata.artist != '') {
 					// stop any sleep timer and set backlight to 'on'
-					stopCounting()
-					beWoke()
+					if (timerRunning) {
+						stopCounting()
+						turnOnBacklight()
+					}
 					sse.send(metadata)
 				}
 			}
@@ -96,21 +100,23 @@ function connectToHEOS() {
 				console.log(state)
 				if (state == 'stop') {
 					// start screen blanking countdown:
-					startSleepTimer()
+					if(!timerRunning) startSleepTimer()
 					sse.send({stopped: 'stopped'})
 				}
 				// if music starts playing, request metadata and send it to client:
 				if (state == 'play') {
 					// stop any sleep timer and set backlight to 'on':
-					stopCounting()
-					beWoke()
+					if (timerRunning) {
+						stopCounting()
+						turnOnBacklight()
+					}
 					connection.write('player', 'get_now_playing_media', {pid: myPid})
 				}
 			}
 		)
 		.onClose(hadError => {
 			// start screen blanking countdown here
-			startSleepTimer()
+			if (!timerRunning) startSleepTimer()
 			if (hadError) {
 				sse.send({disconnected: 'closedWithError'})
 			} else {
