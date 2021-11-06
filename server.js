@@ -7,6 +7,8 @@ const sse = new SSE()
 app.get('/stream', sse.init)
 const { exec } = require('child_process')
 var myPid
+
+// maybe turn this off when testing stuff:
 const backlightControlActive = true
 
 connectToHEOS()
@@ -43,7 +45,7 @@ function turnOnBacklight() {
 	console.log('Pi backlight turned on')
 }
 function turnOffBacklight() {
-	exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+	if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
 	console.log('Pi backlight turned off')
 }
 
