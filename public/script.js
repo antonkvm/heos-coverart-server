@@ -4,9 +4,9 @@ const container = document.getElementById('container')
 const msgTitle = document.querySelector('h1')
 const msgBody = document.querySelector('p')
 var firstConnection = true
-var currentImageURL = ''
+var currentMetadataJSON
 // set this to true if you want a fading transition between cover art images:
-const fadingOn = false
+const fadingOn = true
 
 serverEvents.addEventListener('open', (event) => {
 	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
@@ -26,7 +26,7 @@ serverEvents.onerror = (error) => {
 	stopTimer()
 	setMessageTitle('Connection to nodeJS server lost!')
 	setMessageBody('Trying to reconnect...')
-	setImageUrl()
+	updateImage()
 }
 
 serverEvents.onmessage = (event) => {
@@ -34,30 +34,17 @@ serverEvents.onmessage = (event) => {
 	let message = JSON.parse(event.data)
 	console.log(message)
 
+	var isCounting = count != 0
+
 	// if message contains valid data:
 	if (('artist' in message) && message.artist != '') {
+		goThruStateEventMatrix(message, isCounting)
 
-		if (message.mid == 'Airplaysfsd') {
-			// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
-			let artistParsed = message.artist.replace(/\s/g, '+')
-			let albumParsed = message.album.replace(/\s/g, '+')
-			let itunesSearchUrl = `https://itunes.apple.com/search?term=${artistParsed}+${albumParsed}&limit=1`
-			let itunesImageUrl = 'https://a1.mzstatic.com/us/r1000/063/'
-		
-			// search for artist/album with itunes API, take first result, build proper itunesImageUrl
-			$.getJSON(itunesSearchUrl, (data) => {
-				itunesImageUrl += data.results[0].artworkUrl100.slice(41, -14)
-				goThruStateEventMatrix(message, itunesImageUrl)
-			})
-		} else {
-			goThruStateEventMatrix(message, message.image_url)
-		}
-
-	} 
+	}
 	else if ('stopped' in message) {
 		// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
 		if (!isSleeping && !isCounting) {
-			setImageUrl()
+			updateImage()
 			setMessageBody()
 			startTimer()
 			setMessageBody('Music playback was stopped.')
@@ -65,7 +52,7 @@ serverEvents.onmessage = (event) => {
 	} 
 	// if server lost connection to HEOS device:
 	else if ('disconnected' in message) {
-		setImageUrl()
+		updateImage()
 		startTimer()
 		if (message.disconnected == 'closedWithError') {
 			setMessageBody('Connection to HEOS device was closed with transmission error.')
@@ -75,7 +62,7 @@ serverEvents.onmessage = (event) => {
 	}
 	// no heos device found on network:
 	else if ('noHEOSFoundOnNetwork' in message) {
-		setImageUrl()
+		updateImage()
 		setMessageTitle('No HEOS device found on network!')
 		setMessageBody('Check if the device is plugged into power and connected with the network, then restart the server via SSH.')
 	}
@@ -107,7 +94,10 @@ function stopTimer() {
 	console.log("Sleep timer stopped and reset.")
 	clearTimeout(timer)
 	count = 0
-	if (!isSleeping) setMessageTitle()
+	if (!isSleeping) {
+		setMessageTitle()
+		setMessageBody()
+	}
 }
 function sleep() {
 	isSleeping = true
@@ -134,41 +124,39 @@ function setMessageBody(someText = '') {
  * Replaces the current cover art image with a new one.
  * If the passed URL is empty, screen goes black. If not, any black overlay is removed.
  * If the passed URL is the same as the one currently shown, no DOM changes are made.
- * @param imageUrl The url to the new cover art image. Defaults to empty string.
+ * @param metadataJSON JSON containing the metadata of the new song, as HEOS supplies it.
  */
-function setImageUrl(imageUrl = '') {
+function updateImage(metadataJSON) {
 
-	// go to black screen when imageUrl is empty (default behavior when no parameter provided):
-	if (imageUrl == '') {
+	// go to black screen when no parameter passed into function:
+	if (typeof metadataJSON === 'undefined') {
 		container.style.backgroundColor = 'black'
 	} else {
-		// when imageUrl is not empty, remove black screen:
+		
+		// when metadataJSON is not empty, remove black screen:
 		container.style.removeProperty('background-color')
 
-		// only update image if it's a new one:
-		if (imageUrl != currentImageURL) {
+		// only update image if it's a new album OR the first:
+		if (typeof currentMetadataJSON === 'undefined' || metadataJSON.album != currentMetadataJSON.album) {
 
-			// save current image URL:
-			currentImageURL = imageUrl
+			// save current metadata:
+			currentMetadataJSON = metadataJSON
 
 			// if fading is turned off -> no transition effect
 			if (!fadingOn) {
-				document.querySelector('img').setAttribute('src', imageUrl)				
+				document.querySelector('img').setAttribute('src', metadataJSON.image_url)				
 			} else {
 				let oldElem = document.querySelector('img')
 				let newElem = document.createElement('img')
 				
 				// style new image, initially hidden by js-hide class:
-				newElem.setAttribute('src', imageUrl)
+				newElem.setAttribute('src', metadataJSON.image_url)
 				newElem.classList.add('js-hide')
 			
 				// insert before message container:
 				body.insertBefore(newElem, container)
 				
-				/**
-				 * Wait for new image to load, then start transition to reveal/hide new/old image.
-				 * I was to lazy to test if the load event actually fires, but it sure seems like it.
-				 */
+				// Wait for new image to load, then start transition to reveal/hide new/old image.
 				newElem.onload = () => {
 					oldElem.classList.add('js-hide')
 					newElem.classList.remove('js-hide')
@@ -192,26 +180,26 @@ function setImageUrl(imageUrl = '') {
  * Go through the state event matrix and trigger desired actions accordingly.
  * Check PDF for more info.
  * @param message The SSE message as JSON.
- * @param itunesImageURL The URL that points to the album art image.
+ * @param isCounting Boolean. Should be set to true when the counter is counting.
  */
-function goThruStateEventMatrix(message, itunesImageURL) {
-	let isCounting = count != 0
+function goThruStateEventMatrix(message, isCounting) {
+	// let isCounting = count != 0
 
 	// Awake, non-counting client gets new album art, updates background:
 	if (!isSleeping && !isCounting) {
-		setImageUrl(itunesImageURL)
+		updateImage(message)
 		// clear welcome message:
 		setMessageTitle()
 		setMessageBody()
 	}
 	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
 	if (!isSleeping && isCounting) {
-		setImageUrl(itunesImageURL)
+		updateImage(message)
 		stopTimer()
 	}
 	// Sleeping client gets woken up by any (new or not) album art:
 	if (isSleeping && !isCounting) {
-		setImageUrl(itunesImageURL)
+		updateImage(message)
 		wakeUp()
 	}
 }
