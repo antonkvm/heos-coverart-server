@@ -44,9 +44,9 @@ serverEvents.onmessage = (event) => {
 	let album = message.album.replace(/\s/g, '+')
 	let searchUrl = `https://itunes.apple.com/search?term=${artist}+${album}&limit=1`
 	let itunesImageUri = 'https://a1.mzstatic.com/us/r1000/063/'
-	fetch(searchUrl)
-		.then(res => res.json())
-		.then(res => {itunesImageUri += res.results[0].artworkUrl100.slice(41, -13)})
+
+	$.getJSON(searchUrl, res => itunesImageUri += res.results[0].artworkUrl100.slice(41, -13))
+
 
 	/**  States/events matrix and desired results (see PDF for more info)  **/
 	// Awake, non-counting client gets new album art, updates background:
