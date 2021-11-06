@@ -39,10 +39,19 @@ serverEvents.onmessage = (event) => {
 	let msgHasValidData = ('artist' in message) && message.artist != ''
 	let msgSaysStop = 'stopped' in message
 
+	// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
+	let artist = message.artist.replace(/\s/g, '+')
+	let album = message.album.replace(/\s/g, '+')
+	let searchUrl = `https://itunes.apple.com/search?term=${artist}+${album}&limit=1`
+	let itunesImageUri = 'https://a1.mzstatic.com/us/r1000/063/'
+	fetch(searchUrl)
+		.then(res => res.json())
+		.then(res => {itunesImageUri += res.results[0].artworkUrl100.slice(41, -13)})
+
 	/**  States/events matrix and desired results (see PDF for more info)  **/
 	// Awake, non-counting client gets new album art, updates background:
 	if (!isSleeping && !isCounting && msgHasValidData) {
-		setImageUrl(message.image_url)
+		setImageUrl(itunesImageUri)
 		// clear welcome message:
 		setMessageTitle()
 		setMessageBody()
@@ -56,12 +65,12 @@ serverEvents.onmessage = (event) => {
 	}
 	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
 	if (!isSleeping && isCounting && msgHasValidData) {
-		setImageUrl(message.image_url)
+		setImageUrl(itunesImageUri)
 		stopTimer()
 	}
 	// Sleeping client gets woken up by any (new or not) album art:
 	if (isSleeping && !isCounting && msgHasValidData) {
-		setImageUrl(message.image_url)
+		setImageUrl(itunesImageUri)
 		wakeUp()
 	}
 	// if server lost connection to HEOS device:
@@ -139,7 +148,7 @@ function setMessageBody(someText = '') {
  */
 function setImageUrl(imageUrl = '') {
 
-	// go to black screen when imageUrl is empty:
+	// go to black screen when imageUrl is empty (default behavior when no parameter provided):
 	if (imageUrl == '') {
 		container.style.backgroundColor = 'black'
 	} else {
