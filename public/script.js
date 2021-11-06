@@ -20,7 +20,6 @@ serverEvents.addEventListener('open', (event) => {
 		setMessageBody("To show cover art again, press play on any song.")
 	}
 	firstConnection = false
-	firstErrorSinceLastConnect = true
 })
 // "disconnected from nodeJS server" screen:
 serverEvents.onerror = (error) => {
@@ -35,46 +34,32 @@ serverEvents.onmessage = (event) => {
 	let message = JSON.parse(event.data)
 	console.log(message)
 
-	let isCounting = count != 0
-	let msgHasValidData = ('artist' in message) && message.artist != ''
-	let msgSaysStop = 'stopped' in message
+	// if message contains valid data:
+	if (('artist' in message) && message.artist != '') {
+		// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
+		let artistParsed = message.artist.replace(/\s/g, '+')
+		let albumParsed = message.album.replace(/\s/g, '+')
+		let itunesSearchUrl = `https://itunes.apple.com/search?term=${artistParsed}+${albumParsed}&limit=1`
+		let itunesImageUrl = 'https://a1.mzstatic.com/us/r1000/063/'
+	
+		// search for artist/album with itunes API, take first result, build proper itunesImageUrl
+		$.getJSON(itunesSearchUrl, (data) => {
+			itunesImageUrl += data.results[0].artworkUrl100.slice(41, -13)
+			goThruStateEventMatrix(message, itunesImageUrl)
+		})
 
-	// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
-	let artist = message.artist.replace(/\s/g, '+')
-	let album = message.album.replace(/\s/g, '+')
-	let searchUrl = `https://itunes.apple.com/search?term=${artist}+${album}&limit=1`
-	let itunesImageUri = 'https://a1.mzstatic.com/us/r1000/063/'
-
-	$.getJSON(searchUrl, res => itunesImageUri += res.results[0].artworkUrl100.slice(41, -13))
-
-
-	/**  States/events matrix and desired results (see PDF for more info)  **/
-	// Awake, non-counting client gets new album art, updates background:
-	if (!isSleeping && !isCounting && msgHasValidData) {
-		setImageUrl(itunesImageUri)
-		// clear welcome message:
-		setMessageTitle()
-		setMessageBody()
-	}
-	// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
-	if (!isSleeping && !isCounting && msgSaysStop) {
-		setImageUrl()
-		setMessageBody()
-		startTimer()
-		setMessageBody('Music playback was stopped.')
-	}
-	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
-	if (!isSleeping && isCounting && msgHasValidData) {
-		setImageUrl(itunesImageUri)
-		stopTimer()
-	}
-	// Sleeping client gets woken up by any (new or not) album art:
-	if (isSleeping && !isCounting && msgHasValidData) {
-		setImageUrl(itunesImageUri)
-		wakeUp()
-	}
+	} 
+	else if ('stopped' in message) {
+		// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
+		if (!isSleeping && !isCounting) {
+			setImageUrl()
+			setMessageBody()
+			startTimer()
+			setMessageBody('Music playback was stopped.')
+		}
+	} 
 	// if server lost connection to HEOS device:
-	if ('disconnected' in message) {
+	else if ('disconnected' in message) {
 		setImageUrl()
 		startTimer()
 		if (message.disconnected == 'closedWithError') {
@@ -84,7 +69,7 @@ serverEvents.onmessage = (event) => {
 		}
 	}
 	// no heos device found on network:
-	if ('noHEOSFoundOnNetwork' in message) {
+	else if ('noHEOSFoundOnNetwork' in message) {
 		setImageUrl()
 		setMessageTitle('No HEOS device found on network!')
 		setMessageBody('Check if the device is plugged into power and connected with the network, then restart the server via SSH.')
@@ -197,6 +182,31 @@ function setImageUrl(imageUrl = '') {
 		}
 	}
 }
-function getImageUrl() {
-	return Array.from(document.querySelectorAll('img')).pop().getAttribute('src')
+
+/**
+ * Go through the state event matrix and trigger desired actions accordingly.
+ * Check PDF for more info.
+ * @param message The SSE message as JSON.
+ * @param itunesImageURL The URL that points to the album art image.
+ */
+function goThruStateEventMatrix(message, itunesImageURL) {
+	let isCounting = count != 0
+
+	// Awake, non-counting client gets new album art, updates background:
+	if (!isSleeping && !isCounting) {
+		setImageUrl(itunesImageURL)
+		// clear welcome message:
+		setMessageTitle()
+		setMessageBody()
+	}
+	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
+	if (!isSleeping && isCounting) {
+		setImageUrl(itunesImageURL)
+		stopTimer()
+	}
+	// Sleeping client gets woken up by any (new or not) album art:
+	if (isSleeping && !isCounting) {
+		setImageUrl(itunesImageURL)
+		wakeUp()
+	}
 }
