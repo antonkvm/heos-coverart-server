@@ -44,7 +44,7 @@ serverEvents.onmessage = (event) => {
 	
 		// search for artist/album with itunes API, take first result, build proper itunesImageUrl
 		$.getJSON(itunesSearchUrl, (data) => {
-			itunesImageUrl += data.results[0].artworkUrl100.slice(41, -13)
+			itunesImageUrl += data.results[0].artworkUrl100.slice(41, -14)
 			goThruStateEventMatrix(message, itunesImageUrl)
 		})
 
