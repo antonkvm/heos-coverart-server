@@ -36,17 +36,22 @@ serverEvents.onmessage = (event) => {
 
 	// if message contains valid data:
 	if (('artist' in message) && message.artist != '') {
-		// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
-		let artistParsed = message.artist.replace(/\s/g, '+')
-		let albumParsed = message.album.replace(/\s/g, '+')
-		let itunesSearchUrl = `https://itunes.apple.com/search?term=${artistParsed}+${albumParsed}&limit=1`
-		let itunesImageUrl = 'https://a1.mzstatic.com/us/r1000/063/'
-	
-		// search for artist/album with itunes API, take first result, build proper itunesImageUrl
-		$.getJSON(itunesSearchUrl, (data) => {
-			itunesImageUrl += data.results[0].artworkUrl100.slice(41, -14)
-			goThruStateEventMatrix(message, itunesImageUrl)
-		})
+
+		if (message.mid == 'Airplay') {
+			// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
+			let artistParsed = message.artist.replace(/\s/g, '+')
+			let albumParsed = message.album.replace(/\s/g, '+')
+			let itunesSearchUrl = `https://itunes.apple.com/search?term=${artistParsed}+${albumParsed}&limit=1`
+			let itunesImageUrl = 'https://a1.mzstatic.com/us/r1000/063/'
+		
+			// search for artist/album with itunes API, take first result, build proper itunesImageUrl
+			$.getJSON(itunesSearchUrl, (data) => {
+				itunesImageUrl += data.results[0].artworkUrl100.slice(41, -14)
+				goThruStateEventMatrix(message, itunesImageUrl)
+			})
+		} else {
+			goThruStateEventMatrix(message, message.image_url)
+		}
 
 	} 
 	else if ('stopped' in message) {
