@@ -37,7 +37,7 @@ serverEvents.onmessage = (event) => {
 	// if message contains valid data:
 	if (('artist' in message) && message.artist != '') {
 
-		if (message.mid == 'Airplay') {
+		if (message.mid == 'Airplaysfsd') {
 			// save artist/album and replace any whitespace with a plus (so it's ready for URI insertion)
 			let artistParsed = message.artist.replace(/\s/g, '+')
 			let albumParsed = message.album.replace(/\s/g, '+')
