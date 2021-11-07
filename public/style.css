@@ -51,6 +51,7 @@ img {
     right: 2rem;
     margin: 0;
 	text-align: end;
+	letter-spacing: 3px;
 }
 #song, #artist {
 	margin: 0;
