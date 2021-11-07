@@ -170,6 +170,7 @@ function updateImage(metadataJSON) {
 			// with airplay, the url is always the same, even if the image behind the url changes.
 			// some browsers (ahem, pi zero chromium) won't reload the image if the url is identical.
 			newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
+			
 			// insert before message container:
 			body.insertBefore(newElem, container)
 			
