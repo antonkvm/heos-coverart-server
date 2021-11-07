@@ -9,19 +9,11 @@ const { exec } = require('child_process')
 var myPid
 
 // maybe turn this off when testing stuff:
-const backlightControlActive = true
+const backlightControlActive = false
 
 connectToHEOS()
 
 app.use(express.static('public'))
-
-app.get('/', (req, res) => {
-	res.set({
-		'Cache-Control': 'no-cache, no-store, must-revalidate',
-		'Pragma': 'no-cache',
-		'Expires': 0
-	})
-})
 
 app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
 
