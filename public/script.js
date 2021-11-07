@@ -166,11 +166,12 @@ function updateImage(metadataJSON) {
 			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
 
-			// set image url as img src and append timestamp to make url unique:
-			// with airplay, the url is always the same, even if the image behind the url changes.
-			// some browsers (ahem, pi zero chromium) won't reload the image if the url is identical.
+			// set img src attribute to image_url, with timestamp appended as dummy query:
+			// The dummy query makes the url always unique, which is avoids an airplay bug where images would not 
+			// reload, bc with airplay, the image url is always the same, only the image beheind it changes. Some 
+			// browsers are like: "url same? Me no reload." So this is for those lazy browsers.
 			newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
-			
+
 			// insert before message container:
 			body.insertBefore(newElem, container)
 			
