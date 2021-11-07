@@ -154,7 +154,7 @@ function updateImage(metadataJSON) {
 		// when metadataJSON is not empty, remove black screen:
 		container.style.removeProperty('background-color')
 
-		// only update image if it's a new album OR the first:
+		// only update image if it's the first OR a new album:
 		if (typeof currentMetadataJSON === 'undefined' || metadataJSON.album != currentMetadataJSON.album) {
 
 			// save current metadata:
@@ -163,9 +163,14 @@ function updateImage(metadataJSON) {
 			let oldElem = document.querySelector('img')
 			let newElem = document.createElement('img')
 			
-			// style new image, initially hidden by js-hide class:
-			newElem.setAttribute('src', metadataJSON.image_url)
+			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
+
+			// newElem.setAttribute('src', metadataJSON.image_url)
+			// Trying this and not the above way to force pi zero to reload image and avoid using cache
+			$.get(metadataJSON.image_url, (data) => {
+				newElem.setAttribute('src', data)
+			})
 		
 			// insert before message container:
 			body.insertBefore(newElem, container)
