@@ -15,6 +15,14 @@ connectToHEOS()
 
 app.use(express.static('public'))
 
+app.get('/', (req, res) => {
+	res.set({
+		'Cache-Control': 'no-cache, no-store, must-revalidate',
+		'Pragma': 'no-cache',
+		'Expires': 0
+	})
+})
+
 app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
 
 // Sleep timer:
