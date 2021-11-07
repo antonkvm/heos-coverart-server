@@ -166,12 +166,8 @@ function updateImage(metadataJSON) {
 			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
 
-			// newElem.setAttribute('src', metadataJSON.image_url)
-			// Trying this and not the above way to force pi zero to reload image and avoid using cache
-			$.get(metadataJSON.image_url, (data) => {
-				newElem.setAttribute('src', data)
-			})
-		
+			// set image url as source of new image:
+			newElem.setAttribute('src', metadataJSON.image_url)
 			// insert before message container:
 			body.insertBefore(newElem, container)
 			
@@ -187,6 +183,7 @@ function updateImage(metadataJSON) {
 				deletable.pop()
 				deletable.map(node => node.remove())
 			}
+		
 		}
 	}
 }
