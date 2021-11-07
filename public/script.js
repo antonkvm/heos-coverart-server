@@ -6,7 +6,6 @@ const msgBody = document.querySelector('p')
 var firstConnection = true
 var currentMetadataJSON
 // set this to true if you want a fading transition between cover art images:
-const fadingOn = true
 
 serverEvents.addEventListener('open', (event) => {
 	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
@@ -27,6 +26,7 @@ serverEvents.onerror = (error) => {
 	setMessageTitle('Connection to nodeJS server lost!')
 	setMessageBody('Trying to reconnect...')
 	updateImage()
+	clearTrackInfo()
 }
 
 serverEvents.onmessage = (event) => {
@@ -48,11 +48,14 @@ serverEvents.onmessage = (event) => {
 			setMessageBody()
 			startTimer()
 			setMessageBody('Music playback was stopped.')
+			clearTrackInfo()
 		}
 	} 
 	// if server lost connection to HEOS device:
 	else if ('disconnected' in message) {
 		updateImage()
+		setMessageTitle()
+		clearTrackInfo()
 		startTimer()
 		if (message.disconnected == 'closedWithError') {
 			setMessageBody('Connection to HEOS device was closed with transmission error.')
@@ -63,6 +66,7 @@ serverEvents.onmessage = (event) => {
 	// no heos device found on network:
 	else if ('noHEOSFoundOnNetwork' in message) {
 		updateImage()
+		clearTrackInfo()
 		setMessageTitle('No HEOS device found on network!')
 		setMessageBody('Check if the device is plugged into power and connected with the network, then restart the server via SSH.')
 	}
@@ -119,12 +123,26 @@ function setMessageTitle(someText = '') {
 function setMessageBody(someText = '') {
 	msgBody.innerText = someText
 }
+/**
+ * Change the song and artist displayed on screen.
+ * @param {object} metadata The metadata as JSON containing song and artist.
+ */
+function setTrackInfo(metadata) {
+	// $('#trackinfo').html(`${metadata.song} &ndash; ${metadata.artist}`)
+	$('#song').text(metadata.song)
+	$('#artist').text(metadata.artist)
+}
+function clearTrackInfo() {
+	// $('#trackinfo').html('')
+	$('#song').text('')
+	$('#artist').text('')
+}
 
 /**
  * Replaces the current cover art image with a new one.
  * If the passed URL is empty, screen goes black. If not, any black overlay is removed.
  * If the passed URL is the same as the one currently shown, no DOM changes are made.
- * @param metadataJSON JSON containing the metadata of the new song, as HEOS supplies it.
+ * @param {object} metadataJSON JSON containing the metadata of the new song, as HEOS supplies it.
  */
 function updateImage(metadataJSON) {
 
@@ -142,35 +160,27 @@ function updateImage(metadataJSON) {
 			// save current metadata:
 			currentMetadataJSON = metadataJSON
 
-			// if fading is turned off -> no transition effect
-			if (!fadingOn) {
-				document.querySelector('img').setAttribute('src', metadataJSON.image_url)				
-			} else {
-				let oldElem = document.querySelector('img')
-				let newElem = document.createElement('img')
-				
-				// style new image, initially hidden by js-hide class:
-				newElem.setAttribute('src', metadataJSON.image_url)
-				newElem.classList.add('js-hide')
+			let oldElem = document.querySelector('img')
+			let newElem = document.createElement('img')
 			
-				// insert before message container:
-				body.insertBefore(newElem, container)
-				
-				// Wait for new image to load, then start transition to reveal/hide new/old image.
-				newElem.onload = () => {
-					oldElem.classList.add('js-hide')
-					newElem.classList.remove('js-hide')
+			// style new image, initially hidden by js-hide class:
+			newElem.setAttribute('src', metadataJSON.image_url)
+			newElem.classList.add('js-hide')
+		
+			// insert before message container:
+			body.insertBefore(newElem, container)
 			
-					setTimeout(() => {
-						oldElem.remove()
-					}, 1000)
-				}
-				// flush unnecessary img elements if need be:
-				if (document.querySelectorAll('img').length > 2) {
-					let deletable = Array.from(document.querySelectorAll('img'))
-					deletable.pop()
-					deletable.map(node => node.remove())
-				}
+			// Wait for new image to load, then remove old image and reveal new image.
+			newElem.onload = () => {
+				oldElem.remove()
+				newElem.classList.remove('js-hide')
+				setTrackInfo(metadataJSON)
+			}
+			// flush unnecessary img elements if need be:
+			if (document.querySelectorAll('img').length > 2) {
+				let deletable = Array.from(document.querySelectorAll('img'))
+				deletable.pop()
+				deletable.map(node => node.remove())
 			}
 		}
 	}

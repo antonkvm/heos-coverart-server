@@ -11,9 +11,9 @@ body {
 	height: 100%;
 	font-family: Optima, sans-serif;
 	color: white;
-	text-align: center;
 }
 #message {
+	text-align: center;
 	width: 80%;
 	position: absolute;
 	top: 50%;
@@ -32,8 +32,27 @@ img {
 	width: 100%;
 	object-fit: contain;
 	opacity: 1;
-	transition: opacity 1s linear;
+	/* transition: opacity 1s linear; */
 }
 .js-hide {
 	opacity: 0;
+}
+#shadow-overlay {
+	position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 40%;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+    color: white;
+}
+#trackinfo {
+	position: absolute;
+    bottom: 1rem;
+    right: 2rem;
+    margin: 0;
+	text-align: end;
+}
+#song, #artist {
+	margin: 0;
+	font-size: 2.5rem;
 }
