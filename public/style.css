@@ -62,4 +62,5 @@ img {
 #song, #artist {
 	margin: 0;
 	font-size: 6vw;
+	font-weight: bold;
 }
