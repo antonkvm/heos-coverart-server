@@ -52,6 +52,7 @@ img {
     margin: 0;
 	text-align: end;
 	letter-spacing: 3px;
+	width: 90%;
 }
 #song, #artist {
 	margin: 0;
