@@ -1,31 +1,31 @@
-var serverEvents = new EventSource('http://localhost:5555/stream')
+import * as sleepTimer from './sleepTimer.js';
+let serverEvents = new EventSource('http://localhost:5555/stream')
 const body = document.querySelector('body')
 const container = document.getElementById('container')
-const msgTitle = document.querySelector('h1')
-const msgBody = document.querySelector('p')
 var firstConnection = true
 var currentMetadataJSON
-// set this to true if you want a fading transition between cover art images:
 
-serverEvents.addEventListener('open', (event) => {
-	console.log('SSE Verbindung wurde erfolgreich hergestellt.');
+serverEvents.onopen = (event) => {
 	if (firstConnection) {
+		console.log('SSE Verbindung wurde erfolgreich hergestellt.')
 		// "Welcome" screen:
 		setMessageTitle("HEOS COVER ART SERVER")
 		setMessageBody("Connection successful!\nTo start showing cover art, play a song.")
+		firstConnection = false
 	} else {
+		console.log('SSE Verbindung wurde erfolgreich wiederhergestellt.')
 		// "Reconnect successful" screen:
 		setMessageTitle("Successfully reconnected to nodeJS server!")
 		setMessageBody("To show cover art again, press play on any song.")
 	}
-	firstConnection = false
-})
+}
+
 // "disconnected from nodeJS server" screen:
 serverEvents.onerror = (error) => {
-	stopTimer()
+	sleepTimer.stop()
 	setMessageTitle('Connection to nodeJS server lost!')
 	setMessageBody('Trying to reconnect...')
-	updateImage()
+	updateScreen()
 	clearTrackInfo()
 }
 
@@ -34,29 +34,26 @@ serverEvents.onmessage = (event) => {
 	let message = JSON.parse(event.data)
 	console.log(message)
 
-	var isCounting = count != 0
-
 	// if message contains valid data:
 	if (('artist' in message) && message.artist != '') {
-		goThruStateEventMatrix(message, isCounting)
-
+		processValidSSE(message, sleepTimer.isCounting(), sleepTimer.isSleeping)
 	}
 	else if ('stopped' in message) {
 		// Awake, non-counting client gets message that AVR turned off, starts sleeptimer:
-		if (!isSleeping && !isCounting) {
-			updateImage()
+		if (!sleepTimer.isSleeping && !sleepTimer.isCounting()) {
+			updateScreen()
 			setMessageBody()
-			startTimer()
+			sleepTimer.start()
 			setMessageBody('Music playback was stopped.')
 			clearTrackInfo()
 		}
 	} 
 	// if server lost connection to HEOS device:
 	else if ('disconnected' in message) {
-		updateImage()
+		updateScreen()
 		setMessageTitle()
 		clearTrackInfo()
-		startTimer()
+		sleepTimer.start()
 		if (message.disconnected == 'closedWithError') {
 			setMessageBody('Connection to HEOS device was closed with transmission error.')
 		} else if (message.disconnected == 'closedWithoutError') {
@@ -65,96 +62,53 @@ serverEvents.onmessage = (event) => {
 	}
 	// no heos device found on network:
 	else if ('noHEOSFoundOnNetwork' in message) {
-		updateImage()
+		updateScreen()
 		clearTrackInfo()
 		setMessageTitle('No HEOS device found on network!')
 		setMessageBody('Check if the device is plugged into power and connected with the network, then restart the server via SSH.')
 	}
 }
 
-/**
- * SLEEP TIMER
- * The code below handles the sleep timer functionality
- */
-
-var timer
-const secondsToSleep = 20
-var count = 0
-var remaining
-var isSleeping = false
-
-function startTimer() {
-	remaining = secondsToSleep - count
-	setMessageTitle("Sleeping in... " + remaining)
-	count++
-	if (remaining == 0) {
-		sleep()
-	} else {
-		// with parantheses after timedCount, everything happens immediately and not once every second...
-		timer = setTimeout(startTimer, 1000)
-	}
+export function setMessageTitle(someText = '') {
+	$('#msg-title').text(someText)
+	// document.getElementById('msg-title').innerText = someText
 }
-function stopTimer() {
-	console.log("Sleep timer stopped and reset.")
-	clearTimeout(timer)
-	count = 0
-	if (!isSleeping) {
-		setMessageTitle()
-		setMessageBody()
-	}
-}
-function sleep() {
-	isSleeping = true
-	setMessageTitle("😴")
-	setMessageBody()
-	count = 0
-}
-function wakeUp() {
-	console.log("Waking up...")
-	isSleeping = false
-	setMessageTitle()
-	count = 0
+export function setMessageBody(someText = '') {
+	$('#msg-body').text(someText)
 }
 
-// default parameter value is empty string:
-function setMessageTitle(someText = '') {
-	msgTitle.innerText = someText
-}
-function setMessageBody(someText = '') {
-	msgBody.innerText = someText
-}
 /**
  * Change the song and artist displayed on screen.
  * @param {object} metadata The metadata as JSON containing song and artist.
  */
 function setTrackInfo(metadata) {
-	// $('#trackinfo').html(`${metadata.song} &ndash; ${metadata.artist}`)
 	$('#song').text(metadata.song)
 	$('#artist').text(metadata.artist)
 }
+
+/** Clears any text currently shown in trackinfo div. */
 function clearTrackInfo() {
-	// $('#trackinfo').html('')
 	$('#song').text('')
 	$('#artist').text('')
 }
 
 /**
- * Replaces the current cover art image with a new one.
- * If the passed URL is empty, screen goes black. If not, any black overlay is removed.
- * If the passed URL is the same as the one currently shown, no DOM changes are made.
- * @param {object} metadataJSON JSON containing the metadata of the new song, as HEOS supplies it.
+ * Update the screen with new album art and trackinfo.
+ * If no parameter is passed into the function or the parameter is undefined, the screen will go black.
+ * @param {object} metadataJSON JSON object containing the metadata of the new song, as HEOS supplies it.
  */
-function updateImage(metadataJSON) {
+function updateScreen(metadataJSON) {
 
 	// go to black screen when no parameter passed into function:
 	if (typeof metadataJSON === 'undefined') {
 		container.style.backgroundColor = 'black'
-	} else {
+	} 
+	else {
 		
 		// when metadataJSON is not empty, remove black screen:
 		container.style.removeProperty('background-color')
 
-		// only update image if it's the first OR a new album:
+		// update image and trackinfo if it's the first OR a new album:
 		if (typeof currentMetadataJSON === 'undefined' || metadataJSON.album != currentMetadataJSON.album) {
 
 			// save current metadata:
@@ -166,11 +120,14 @@ function updateImage(metadataJSON) {
 			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
 
-			// set img src attribute to image_url, with timestamp appended as dummy query:
-			// The dummy query makes the url always unique, which is avoids an airplay bug where images would not 
-			// reload, bc with airplay, the image url is always the same, only the image beheind it changes. Some 
-			// browsers are like: "url same? Me no reload." So this is for those lazy browsers.
-			newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
+			/* 
+			Set img src attribute to image_url, with timestamp appended as dummy query:
+			The dummy query makes the url always unique, which is avoids an airplay bug where images would not 
+			reload, bc with airplay, the image url is always the same, only the image beheind it changes. Some 
+			browsers are like: "url same? Me no reload." So this is for those lazy browsers.
+			*/
+			// newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
+			newElem.src = metadataJSON.image_url + '?t=' + new Date().getTime()
 
 			// insert before message container:
 			body.insertBefore(newElem, container)
@@ -187,35 +144,40 @@ function updateImage(metadataJSON) {
 				deletable.pop()
 				deletable.map(node => node.remove())
 			}
-		
+		}
+		else {
+			// Update trackinfo, but not image, even if metadata is not new.
+			// Necessary bc sleepTimer clears trackinfo while not changing currentMetadata (-> above if not triggered).
+			setTrackInfo(metadataJSON)
 		}
 	}
 }
 
 /**
- * Go through the state event matrix and trigger desired actions accordingly.
- * Check PDF for more info.
- * @param message The SSE message as JSON.
- * @param isCounting Boolean. Should be set to true when the counter is counting.
+ * Takes a valid SSE message and decides how to react to it, depending on the servers current state (e.g. sleeping / awake).
+ * Function needs isCounting and isSleeping as arguments to correctly decide on an action.
+ * @param {object} message [object] The SSE message as JSON.
+ * @param {boolean} isCounting [boolean] Should be set to true if the counter is counting (count is not zero).
+ * @param {boolean} isSleeping [boolean] Please write the current isSleeping boolean value into this paramater.
  */
-function goThruStateEventMatrix(message, isCounting) {
+function processValidSSE(message, isCounting, isSleeping) {
 	// let isCounting = count != 0
 
 	// Awake, non-counting client gets new album art, updates background:
 	if (!isSleeping && !isCounting) {
-		updateImage(message)
+		updateScreen(message)
 		// clear welcome message:
 		setMessageTitle()
 		setMessageBody()
 	}
 	// Client counting down to sleep, but gets any (new or not) album art, stops timer and updates background:
 	if (!isSleeping && isCounting) {
-		updateImage(message)
-		stopTimer()
+		updateScreen(message)
+		sleepTimer.stop()
 	}
 	// Sleeping client gets woken up by any (new or not) album art:
 	if (isSleeping && !isCounting) {
-		updateImage(message)
-		wakeUp()
+		updateScreen(message)
+		sleepTimer.wakeUp()
 	}
 }
