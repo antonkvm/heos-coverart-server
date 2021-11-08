@@ -18,6 +18,8 @@ serverEvents.onopen = (event) => {
 		setMessageTitle("Successfully reconnected to nodeJS server!")
 		setMessageBody("To show cover art again, press play on any song.")
 	}
+	// hide lil speck of devider line:
+	$('hr').hide()
 }
 
 // "disconnected from nodeJS server" screen:
@@ -84,12 +86,14 @@ export function setMessageBody(someText = '') {
 function setTrackInfo(metadata) {
 	$('#song').text(metadata.song)
 	$('#artist').text(metadata.artist)
+	$('hr').show()
 }
 
 /** Clears any text currently shown in trackinfo div. */
 function clearTrackInfo() {
 	$('#song').text('')
 	$('#artist').text('')
+	$('hr').hide()
 }
 
 /**
