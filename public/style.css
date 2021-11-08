@@ -5,6 +5,10 @@ body, html {
 body {
 	background-color: black;
 }
+@font-face {
+	font-family: Optima;
+	src: url(unicode.optima.ttf);
+}
 #container {
 	position: absolute;
 	width: 100%;
