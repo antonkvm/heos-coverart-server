@@ -133,15 +133,16 @@ function updateScreen(metadataJSON) {
 			// newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
 			newElem.src = metadataJSON.image_url + '?t=' + new Date().getTime()
 
-			// insert before message container:
-			body.insertBefore(newElem, container)
-			
 			// Wait for new image to load, then remove old image and reveal new image.
 			newElem.onload = () => {
 				oldElem.remove()
 				newElem.classList.remove('js-hide')
 				setTrackInfo(metadataJSON)
 			}
+
+			// insert before message container:
+			body.insertBefore(newElem, container)
+			
 			// flush unnecessary img elements if need be:
 			if (document.querySelectorAll('img').length > 2) {
 				let deletable = Array.from(document.querySelectorAll('img'))
