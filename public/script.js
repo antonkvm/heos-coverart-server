@@ -125,15 +125,15 @@ function updateScreen(metadataJSON) {
 			newElem.classList.add('js-hide')
 
 			/* 
-			Set img src attribute to image_url, with timestamp appended as dummy query:
-			The dummy query makes the url always unique, which is avoids an airplay bug where images would not 
-			reload, bc with airplay, the image url is always the same, only the image beheind it changes. Some 
-			browsers are like: "url same? Me no reload." So this is for those lazy browsers.
+			 * Set img src attribute to image_url, with timestamp appended as dummy query:
+			 * The dummy query makes the url always unique, which avoids a bug on some browsers when using airplay.
+			 * The image url with airplay never changes, it's always '<avr-ip>/airplay/albumart', only  the image
+			 * behind it changes. Some browsers don't reload the image if the url doesn't change, so we make the url
+			 * unique without changing where it actually points to.
 			*/
-			// newElem.setAttribute('src', `${metadataJSON.image_url}?t=${new Date().getTime()}`)
 			newElem.src = metadataJSON.image_url + '?t=' + new Date().getTime()
 
-			// Wait for new image to load, then remove old image and reveal new image.
+			// Set Eventlistener: new image load -> then remove old image, reveal new image, and update trackinfo .
 			newElem.onload = () => {
 				oldElem.remove()
 				newElem.classList.remove('js-hide')
@@ -142,7 +142,7 @@ function updateScreen(metadataJSON) {
 
 			// insert before message container:
 			body.insertBefore(newElem, container)
-			
+
 			// flush unnecessary img elements if need be:
 			if (document.querySelectorAll('img').length > 2) {
 				let deletable = Array.from(document.querySelectorAll('img'))
@@ -163,10 +163,9 @@ function updateScreen(metadataJSON) {
  * Function needs isCounting and isSleeping as arguments to correctly decide on an action.
  * @param {object} message [object] The SSE message as JSON.
  * @param {boolean} isCounting [boolean] Should be set to true if the counter is counting (count is not zero).
- * @param {boolean} isSleeping [boolean] Please write the current isSleeping boolean value into this paramater.
+ * @param {boolean} isSleeping [boolean] Please write the current isSleeping boolean value into this parameter.
  */
 function processValidSSE(message, isCounting, isSleeping) {
-	// let isCounting = count != 0
 
 	// Awake, non-counting client gets new album art, updates background:
 	if (!isSleeping && !isCounting) {
