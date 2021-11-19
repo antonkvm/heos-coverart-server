@@ -3,7 +3,7 @@
 A simple nodeJS server delivering a webpage showing albumart and trackinfo of the song currently playing on your HEOS device. Tested with Spotify and AirPlay. Webpage optimized for 720x720 square display.
 
 # Dependencies
-This package makes use of the heos-api package by juliuscc to communicate with the HEOS device, which made creating this project way simpler on my end, because I didn't have to worry at all about how to make a telnet connection work. Other than that is uses express to answer GET-requests, and express-SSE to send updates to the client aka the browser window that you'd see on the screen in the end.
+This package makes use of the [heos-api package by juliuscc](https://www.npmjs.com/package/heos-api) to communicate with the HEOS device, which made creating this project way simpler on my end, because I didn't have to worry at all about how to make a telnet connection work. Other than that is uses [express](https://www.npmjs.com/package/express) to answer GET-requests, and [express-sse](https://www.npmjs.com/package/express-sse) to send updates to the client aka the browser window that you'd see on the screen in the end.
 
 ## Installation
 1. To do
