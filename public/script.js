@@ -123,7 +123,15 @@ function updateScreen(metadataJSON) {
 			
 			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
-
+			
+			// Set Eventlistener: new image load -> then remove old image, reveal new image, and update trackinfo.
+			// Seting this event listener before setting the src attribute so it actually works.
+			newElem.onload = () => {
+				oldElem.remove()
+				newElem.classList.remove('js-hide')
+				setTrackInfo(metadataJSON)
+			}
+			
 			/* 
 			 * Set img src attribute to image_url, with timestamp appended as dummy query:
 			 * The dummy query makes the url always unique, which avoids a bug on some browsers when using airplay.
@@ -132,13 +140,6 @@ function updateScreen(metadataJSON) {
 			 * unique without changing where it actually points to.
 			*/
 			newElem.src = metadataJSON.image_url + '?t=' + new Date().getTime()
-
-			// Set Eventlistener: new image load -> then remove old image, reveal new image, and update trackinfo .
-			newElem.onload = () => {
-				oldElem.remove()
-				newElem.classList.remove('js-hide')
-				setTrackInfo(metadataJSON)
-			}
 
 			// insert before message container:
 			body.insertBefore(newElem, container)
