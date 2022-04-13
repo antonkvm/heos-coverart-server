@@ -131,6 +131,9 @@ function updateScreen(metadataJSON) {
 				newElem.classList.remove('js-hide')
 				setTrackInfo(metadataJSON)
 			}
+
+			// insert before message container:
+			body.insertBefore(newElem, container)
 			
 			/* 
 			 * Set img src attribute to image_url, with timestamp appended as dummy query:
@@ -141,8 +144,6 @@ function updateScreen(metadataJSON) {
 			*/
 			newElem.src = metadataJSON.image_url + '?t=' + new Date().getTime()
 
-			// insert before message container:
-			body.insertBefore(newElem, container)
 
 			// flush unnecessary img elements if need be:
 			if (document.querySelectorAll('img').length > 2) {
