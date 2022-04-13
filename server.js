@@ -9,7 +9,7 @@ const { exec } = require('child_process')
 var myPid
 
 // maybe turn this off when testing stuff:
-const backlightControlActive = true
+const backlightControlActive = false
 
 connectToHEOS()
 
