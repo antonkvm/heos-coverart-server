@@ -54,62 +54,40 @@ function connectToHEOS() {
 		.write('system', 'register_for_change_events', {enable: 'on'})
 		.write('system', 'prettify_json_response', {enable: 'on'})
 		.write('player', 'get_players')
-		.once({
-				commandGroup: 'player',
-				command: 'get_players'
-			},
-			res => {
-				if (res.heos.result == 'success') {
-					myPid = res.payload[0].pid
-					console.log('HEOS device found! Here is its pid: ' + myPid)
-				} else {
-					sse.send({noHEOSFoundOnNetwork: true})
-				}
+		.once({commandGroup: 'player', command: 'get_players'}, res => {
+			if (res.heos.result == 'success') {
+				myPid = res.payload[0].pid
+			} else {
+				sse.send({noHEOSFoundOnNetwork: true})
 			}
-		)
-		.on({	
-				commandGroup: 'event',
-				command: 'player_now_playing_changed'
-			},
-			res => {
-				console.log("Event: now playing media changed")
+		})
+		.on({commandGroup: 'event', command: 'player_now_playing_changed'}, res => {
+			connection.write('player', 'get_now_playing_media', {pid: myPid})
+		})
+		.on({commandGroup: 'player', command: 'get_now_playing_media'}, res => {
+			let metadata = res.payload
+			// only send metadata if non-empty:
+			if (metadata.artist != '') {
+				if (timerRunning) stopTimer()
+				turnOnBacklight()
+				sse.send(metadata)
+			}
+		})
+		.on({commandGroup: 'event',command: 'player_state_changed'}, res => {
+			let state = res.heos.message.parsed.state
+			console.log(state)
+			if (state == 'stop') {
+				// start screen blanking countdown:
+				if(!timerRunning) startSleepTimer()
+				sse.send({stopped: 'stopped'})
+			}
+			// if music starts playing, request metadata and send it to client:
+			if (state == 'play') {
+				if (timerRunning) stopTimer()
+				turnOnBacklight()
 				connection.write('player', 'get_now_playing_media', {pid: myPid})
 			}
-		)
-		.on({
-				commandGroup: 'player',
-				command: 'get_now_playing_media'
-			},
-			res => {
-				let metadata = res.payload
-				// only send metadata if non-empty:
-				if (metadata.artist != '') {
-					if (timerRunning) stopTimer()
-					turnOnBacklight()
-					sse.send(metadata)
-				}
-			}
-		)
-		.on({
-				commandGroup: 'event',
-				command: 'player_state_changed'
-			},
-			res => {
-				let state = res.heos.message.parsed.state
-				console.log(state)
-				if (state == 'stop') {
-					// start screen blanking countdown:
-					if(!timerRunning) startSleepTimer()
-					sse.send({stopped: 'stopped'})
-				}
-				// if music starts playing, request metadata and send it to client:
-				if (state == 'play') {
-					if (timerRunning) stopTimer()
-					turnOnBacklight()
-					connection.write('player', 'get_now_playing_media', {pid: myPid})
-				}
-			}
-		)
+		})
 		.onClose(hadError => {
 			// start screen blanking countdown here
 			if (!timerRunning) startSleepTimer()
