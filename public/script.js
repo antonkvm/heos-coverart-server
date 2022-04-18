@@ -24,6 +24,8 @@ serverEvents.onopen = (event) => {
 
 // "disconnected from nodeJS server" screen:
 serverEvents.onerror = (error) => {
+	console.log("SSE error detected.")
+	console.log(error)
 	sleepTimer.stop()
 	setMessageTitle('Connection to nodeJS server lost!')
 	setMessageBody('Trying to reconnect...')
