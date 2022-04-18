@@ -57,6 +57,7 @@ function connectToHEOS() {
 		.once({commandGroup: 'player', command: 'get_players'}, res => {
 			if (res.heos.result == 'success') {
 				myPid = res.payload[0].pid
+				console.log("HEOS device found. Its PID is: " + myPid)
 			} else {
 				sse.send({noHEOSFoundOnNetwork: true})
 			}
