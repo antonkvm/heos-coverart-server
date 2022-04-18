@@ -8,7 +8,7 @@ app.get('/stream', sse.init)
 const { exec } = require('child_process')
 var myPid
 
-// maybe turn this off when testing stuff:
+// turn this off when testing locally:
 const backlightControlActive = true
 
 connectToHEOS()
