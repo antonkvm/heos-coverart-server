@@ -95,53 +95,53 @@ function connectToHeosAndCreateSSEConnection() {
 			sendSSE({event: 'init'}, response)
 		})
 		connection
-		.write('system', 'register_for_change_events', {enable: 'on'})
-		.write('system', 'prettify_json_response', {enable: 'on'})
-		.write('player', 'get_players')
-		.once({commandGroup: 'player', command: 'get_players'}, res => {
-			if (res.heos.result == 'success') {
-				myPid = res.payload[0].pid
-				console.log("HEOS device found. Its PID is: " + myPid)
-			} else {
-				sendSSE({event: 'noHeosFound'}, xRes)
-				console.log("no HEOS device found on network :(")
-			}
-		})
-		.on({commandGroup: 'event', command: 'player_now_playing_changed'}, res => {
-			connection.write('player', 'get_now_playing_media', {pid: myPid})
-		})
-		.on({commandGroup: 'player', command: 'get_now_playing_media'}, res => {
-			let metadata = res.payload
-			if (prevMetadata == null || (metadata.mid != prevMetadata.mid && metadata.artist != '') ) {
-				prevMetadata = metadata
-				if (timerRunning) stopTimer()
-				turnOnBacklight()
-				sendSSE({event: 'new metadata', payload: metadata}, xRes)
-			}
-		})
-		.on({commandGroup: 'event',command: 'player_state_changed'}, res => {
-			let state = res.heos.message.parsed.state
-			console.log(state)
-			if (state == 'stop' && !timerRunning) {
-				startSleepTimer()
-			}
-			if (state == 'play') {
-				if (timerRunning) {
-					stopTimer()
-					prevMetadata = null
+			.write('system', 'register_for_change_events', {enable: 'on'})
+			.write('system', 'prettify_json_response', {enable: 'on'})
+			.write('player', 'get_players')
+			.once({commandGroup: 'player', command: 'get_players'}, res => {
+				if (res.heos.result == 'success') {
+					myPid = res.payload[0].pid
+					console.log("HEOS device found. Its PID is: " + myPid)
+				} else {
+					sendSSE({event: 'noHeosFound'}, xRes)
+					console.log("no HEOS device found on network :(")
 				}
-				turnOnBacklight()
+			})
+			.on({commandGroup: 'event', command: 'player_now_playing_changed'}, res => {
 				connection.write('player', 'get_now_playing_media', {pid: myPid})
-			}
-		})
-		.onClose(hadError => {
-			// start screen blanking countdown here
-			if (!timerRunning) startSleepTimer()
-			if (hadError) console.log('Closed Heos Connection with error.')
-			else console.log('Closed Heos Connection without error.')
-			// todo: reconnect to HEOS, close current event stream with res.end, bc new stream will be created?
-			xRes.end()
-			connectToHeosAndCreateSSEConnection()
-		})
+			})
+			.on({commandGroup: 'player', command: 'get_now_playing_media'}, res => {
+				let metadata = res.payload
+				if (prevMetadata == null || (metadata.mid != prevMetadata.mid && metadata.artist != '') ) {
+					prevMetadata = metadata
+					if (timerRunning) stopTimer()
+					turnOnBacklight()
+					sendSSE({event: 'new metadata', payload: metadata}, xRes)
+				}
+			})
+			.on({commandGroup: 'event',command: 'player_state_changed'}, res => {
+				let state = res.heos.message.parsed.state
+				console.log(state)
+				if (state == 'stop' && !timerRunning) {
+					startSleepTimer()
+				}
+				if (state == 'play') {
+					if (timerRunning) {
+						stopTimer()
+						prevMetadata = null
+					}
+					turnOnBacklight()
+					connection.write('player', 'get_now_playing_media', {pid: myPid})
+				}
+			})
+			.onClose(hadError => {
+				// start screen blanking countdown here
+				if (!timerRunning) startSleepTimer()
+				if (hadError) console.log('Closed Heos Connection with error.')
+				else console.log('Closed Heos Connection without error.')
+				// todo: reconnect to HEOS, close current event stream with res.end, bc new stream will be created?
+				xRes.end()
+				connectToHeosAndCreateSSEConnection()
+			})
 	})
 }
