@@ -5,30 +5,17 @@ const PORT = 5555
 const { exec } = require('child_process')
 
 let prevMetadata = null
-let xResponse
+let xRes
 
 // turn this off when testing locally:
 const backlightControlActive = false
 
-// serve index.html statically:
+// make sure backlight is initially always on, so declaring backlightOn as true actually is true.
+if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
+let backlightOn = true
+
 app.use(express.static('public'))
-
-// initialize SSE server:
-app.get('/stream', (req, res) => {
-	res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders(); // flush the headers to establish SSE with client
-
-	// save response object globally bc the timer cant pass it into itself with setTimeout
-	xResponse = res
-
-	sendSSE({event: 'init'}, res)
-	connectToHEOS(res)
-	
-})
-
+connectToHeosAndCreateSSEConnection()
 app.listen(PORT, () => console.log("Server is now listening to port %d.", PORT))
 
 
@@ -57,11 +44,10 @@ let count = 0
 let timer = null
 let remaining
 let timerRunning = false
-
 function startSleepTimer() {
 	timerRunning = true
 	remaining = secondsToSleep - count
-	sendSSE({event: 'getting sleepy', remaining: remaining}, xResponse)
+	sendSSE({event: 'getting sleepy', remaining: remaining}, xRes)
 	count++
 	if (remaining == 0) {
 		// todo: send 'zzz' as SSE message?
@@ -76,23 +62,39 @@ function stopTimer() {
 	timerRunning = false
 	count = 0
 }
+
 function turnOnBacklight() {
-	if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
-	else console.log('Pi backlight turned on')
+	if (!backlightOn) {
+		if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
+		else console.log('Pi backlight turned on')
+		backlightOn = true
+	}
 }
 function turnOffBacklight() {
-	if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
-	else console.log('Pi backlight turned off')
+	if (backlightOn) {
+		if (backlightControlActive) exec('sudo su -c "echo 0 > /sys/class/backlight/rpi_backlight/brightness"')
+		else console.log('Pi backlight turned off')
+		backlightOn = false
+	}
 }
 /**
- * Connects to HEOS device on network and listens. Receives events from HEOS device and sends it out as SSE message.
- * For this to work this function need the express response object as an argument.
- * @param {object} xRes The response object from the express middleware in which this function is called.
- * @todo xRes Parameter is sort of redundant as I was forced to save the express res object in a global variable for the sleeptimer anyways.
+ * Connects to HEOS device on network and initializes an SSE connection if successful.
+ * Listens on the HEOS device for relevant events and sends them to the client as SSE message.
  */
-function connectToHEOS(xRes) {
-	var myPid
-	heos.discoverAndConnect().then(connection => connection
+function connectToHeosAndCreateSSEConnection() {
+	let myPid
+	heos.discoverAndConnect().then(connection => {
+		// initialize SSE server:
+		app.get('/stream', (req, response) => {
+			response.setHeader('Cache-Control', 'no-cache');
+			response.setHeader('Content-Type', 'text/event-stream');
+			response.setHeader('Access-Control-Allow-Origin', '*');
+			response.setHeader('Connection', 'keep-alive');
+			response.flushHeaders(); // flush the headers to establish SSE with client
+			xRes = response
+			sendSSE({event: 'init'}, response)
+		})
+		connection
 		.write('system', 'register_for_change_events', {enable: 'on'})
 		.write('system', 'prettify_json_response', {enable: 'on'})
 		.write('player', 'get_players')
@@ -137,9 +139,9 @@ function connectToHEOS(xRes) {
 			if (!timerRunning) startSleepTimer()
 			if (hadError) console.log('Closed Heos Connection with error.')
 			else console.log('Closed Heos Connection without error.')
-			// restart connection to HEOS:
-			// todo: reexaming this. Seems like multiple HEOS instances get started
-			// connectToHEOS()
+			// todo: reconnect to HEOS, close current event stream with res.end, bc new stream will be created?
+			xRes.end()
+			connectToHeosAndCreateSSEConnection()
 		})
-	)
+	})
 }
