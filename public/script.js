@@ -162,9 +162,8 @@ function updateScreen(newMetadata) {
 		}
 	}
 }
-/**
- * Makes the background go black.
- */
+
+/** Makes the background go black.  */
 function clearScreen() {
 	updateScreen()
 }
