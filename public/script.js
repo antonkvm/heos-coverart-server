@@ -108,46 +108,22 @@ function clearTrackInfo() {
  * @param {object} newMetadata Object containing the metadata of the new song, as HEOS supplies it.
  */
 function updateScreen(newMetadata) {
-
-	// go to black screen when no parameter passed into function:
 	if (typeof newMetadata === 'undefined') container.style.backgroundColor = 'black'
 	else {
-		// when metadataJSON is not empty, remove black screen:
 		container.style.removeProperty('background-color')
-
-		// update image and trackinfo if it's the first OR a new album:
 		if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
-
-			// save current metadata:
 			currentMetadata = newMetadata
-
 			let oldElem = document.querySelector('img')
 			let newElem = document.createElement('img')
-			
-			// new image initially hidden by js-hide class:
 			newElem.classList.add('js-hide')
-			
-			// Set Eventlistener: new image load -> then remove old image, reveal new image, and update trackinfo.
-			// Seting this event listener before setting the src attribute so it actually works.
 			newElem.onload = () => {
 				oldElem.remove()
 				newElem.classList.remove('js-hide')
 				setTrackInfo(newMetadata)
 			}
-
-			// insert before message container:
 			body.insertBefore(newElem, container)
-			
-			/* 
-			 * Set img src attribute to image_url, with timestamp appended as dummy query:
-			 * The dummy query makes the url always unique, which avoids a bug on some browsers when using airplay.
-			 * The image url with airplay never changes, it's always '<avr-ip>/airplay/albumart', only  the image
-			 * behind it changes. Some browsers don't reload the image if the url doesn't change, so we make the url
-			 * unique without changing where it actually points to.
-			*/
+			// make src url always unique bc some browsers won't reload otherwise:
 			newElem.src = newMetadata.image_url + '?t=' + new Date().getTime()
-
-
 			// flush unnecessary img elements if need be:
 			if (document.querySelectorAll('img').length > 2) {
 				let deletable = Array.from(document.querySelectorAll('img'))
@@ -157,7 +133,7 @@ function updateScreen(newMetadata) {
 		}
 		else {
 			// Update trackinfo, but not image, even if metadata is not new.
-			// Necessary bc sleepTimer clears trackinfo while not changing currentMetadata (-> above if not triggered).
+			// Necessary bc sleepTimer clears trackinfo while not changing currentMetadata (-> above IF not triggered).
 			setTrackInfo(newMetadata)
 		}
 	}
