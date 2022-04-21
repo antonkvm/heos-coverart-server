@@ -8,7 +8,7 @@ let prevMetadata = null
 let xRes
 
 // turn this off when testing locally:
-const backlightControlActive = false
+const backlightControlActive = true
 
 // make sure backlight is initially always on, so declaring backlightOn as true actually is true.
 if (backlightControlActive) exec('sudo su -c "echo 1 > /sys/class/backlight/rpi_backlight/brightness"')
