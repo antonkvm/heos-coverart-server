@@ -108,32 +108,20 @@ function clearTrackInfo() {
  * @param {object} newMetadata Object containing the metadata of the new song, as HEOS supplies it.
  */
 function updateScreen(newMetadata) {
-	if (typeof newMetadata === 'undefined') container.style.backgroundColor = 'black'
-	else {
+	if (typeof newMetadata === 'undefined') {
+		container.style.backgroundColor = 'black'
+		$('#shadow-overlay').hide()
+	} else {
 		container.style.removeProperty('background-color')
+		$('#shadow-overlay').show()
+		// if new or first song:
 		if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
 			currentMetadata = newMetadata
-			let oldElem = document.querySelector('img')
-			let newElem = document.createElement('img')
-			newElem.classList.add('js-hide')
-			newElem.onload = () => {
-				oldElem.remove()
-				newElem.classList.remove('js-hide')
-				setTrackInfo(newMetadata)
-			}
-			body.insertBefore(newElem, container)
-			// make src url always unique bc some browsers won't reload otherwise:
-			newElem.src = newMetadata.image_url + '?t=' + new Date().getTime()
-			// flush unnecessary img elements if need be:
-			if (document.querySelectorAll('img').length > 2) {
-				let deletable = Array.from(document.querySelectorAll('img'))
-				deletable.pop()
-				deletable.map(node => node.remove())
-			}
+			$('img').attr('src', newMetadata.image_url + '?t=' + new Date().getTime())
+			setTrackInfo(newMetadata)
 		}
+		// if same song, only remove black screen (above) and show trackinfo again. Needed after sleep timer.
 		else {
-			// Update trackinfo, but not image, even if metadata is not new.
-			// Necessary bc sleepTimer clears trackinfo while not changing currentMetadata (-> above IF not triggered).
 			setTrackInfo(newMetadata)
 		}
 	}
