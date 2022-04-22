@@ -5,6 +5,7 @@ var firstConnection = true
 var currentMetadata
 
 serverEvents.onopen = (event) => {
+	container.classList.add('js-gradientBackdrop')
 	if (firstConnection) {
 		console.log('SSE Verbindung wurde erfolgreich hergestellt.')
 		setMessageTitle("HEOS COVER ART SERVER")
@@ -109,10 +110,12 @@ function clearTrackInfo() {
  */
 function updateScreen(newMetadata) {
 	if (typeof newMetadata === 'undefined') {
-		container.style.backgroundColor = 'black'
+		// container.style.backgroundColor = 'black'
+		container.classList.add('js-gradientBackdrop')
 		$('#shadow-overlay').hide()
 	} else {
 		container.style.removeProperty('background-color')
+		container.classList.remove('js-gradientBackdrop')
 		$('#shadow-overlay').show()
 		// if new or first song:
 		if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
