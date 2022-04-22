@@ -117,8 +117,11 @@ function updateScreen(newMetadata) {
 		// if new or first song:
 		if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
 			currentMetadata = newMetadata
-			$('img').attr('src', newMetadata.image_url + '?t=' + new Date().getTime())
-			setTrackInfo(newMetadata)
+			// wait 2 seconds bc with airplay, img_src can be slow to update. Avoids img load errors.
+			setTimeout(() => {
+				$('img').attr('src', newMetadata.image_url + '?t=' + new Date().getTime())
+				setTrackInfo(newMetadata)
+			}, 2*1000);
 		}
 		// if same song, only remove black screen (above) and show trackinfo again. Needed after sleep timer.
 		else {
