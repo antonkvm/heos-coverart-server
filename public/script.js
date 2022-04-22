@@ -1,20 +1,18 @@
 let serverEvents = new EventSource('http://localhost:5555/stream')
-const body = document.querySelector('body')
-const container = document.getElementById('container')
 var firstConnection = true
 var currentMetadata
 
 serverEvents.onopen = (event) => {
-	container.classList.add('js-gradientBackdrop')
+	$('#container').addClass('js-gradientBackdrop')
 	if (firstConnection) {
 		console.log('SSE Verbindung wurde erfolgreich hergestellt.')
-		setMessageTitle("HEOS COVER ART SERVER")
-		setMessageBody("Connection successful!\nTo start showing cover art, press play on a song.")
+		$('#msg-title').text('HEOS COVER ART SERVER')
+		$('#msg-body').text('Connection successful!\nTo start showing cover art, press play on a song.')
 		firstConnection = false
 	} else {
 		console.log('SSE Verbindung wurde erfolgreich wiederhergestellt.')
-		setMessageTitle("Successfully reconnected to nodeJS server!")
-		setMessageBody("To show cover art again, press play on any song.")
+		$('#msg-title').text('Successfully reconnected to nodeJS server!')
+		$('#msg-body').text('To show cover art again, press play on any song.')
 	}
 	// hide lil speck of devider line:
 	$('hr').hide()
@@ -29,19 +27,20 @@ serverEvents.onmessage = (event) => {
 		case 'noHeosFound':
 			clearScreen()
 			clearTrackInfo()
-			setMessageTitle('No HEOS device found on network :(')
-			setMessageBody('Check if the device is plugged into power and connected with the network')
+			$('#msg-title').text('No HEOS device found on network :(')
+			$('#msg-body').text('Check if the device is plugged into power and connected with the network.')
 			break
 		case 'new metadata':
 			updateScreen(data.payload)
-			clearMessageTitle()
-			clearMessageBody()
+			$('#msg-title, #msg-body, #sleep1, #sleep2, #sleep3').text('')
 			break
 		case 'getting sleepy':
 			clearScreen()
 			clearTrackInfo()
-			setMessageTitle('Sleeping in ' + data.remaining)
-			setMessageBody('Music playback has been stopped.')
+			$('#msg-title, #msg-body').text('')
+			$('#sleep1').text('Sleeping in')
+			$('#sleep2').text(data.remaining)
+			$('#sleep3').text('seconds')
 			break
 		default:
 			break
@@ -51,8 +50,8 @@ serverEvents.onmessage = (event) => {
 // "disconnected from nodeJS server" screen:
 serverEvents.onerror = (error) => {
 	console.log('SSE error detected!')
-	setMessageTitle('SSE error :(')
-	setMessageBody('Trying to reconnect...') // fun fact: firefox doesn't auto-reconnect, but needs a page refresh.
+	$('#msg-title').text('SSE error :(')
+	$('#msg-body').text('Trying to reconnect...') // fun fact: firefox doesn't auto-reconnect, but needs a page refresh.
 	updateScreen()
 	clearTrackInfo()
 }
@@ -63,28 +62,6 @@ serverEvents.onerror = (error) => {
 
 
 /* --------------------------------------------- FUNCTIONS: --------------------------------------------- */
-
-/**
- * Set the screen title message to a given string. Defaults to clearing the message if no string is passed.
- * @param {string} someText 
- */
-function setMessageTitle(someText = '') {
-	$('#msg-title').text(someText)
-	// document.getElementById('msg-title').innerText = someText
-}
-/**
- * Set the screen body message to a given string. Defaults to clearing the message if no string is passed.
- * @param {string} someText 
- */
-function setMessageBody(someText = '') {
-	$('#msg-body').text(someText)
-}
-function clearMessageTitle() {
-	setMessageTitle()
-}
-function clearMessageBody() {
-	setMessageBody()
-}
 
 /**
  * Change the song and artist displayed on screen.
@@ -105,17 +82,15 @@ function clearTrackInfo() {
 
 /**
  * Update the screen with new album art and trackinfo.
- * If no parameter is passed into the function or the parameter is undefined, the screen will go black.
+ * If no parameter is passed into the function or the parameter is undefined, the screen will go blank.
  * @param {object} newMetadata Object containing the metadata of the new song, as HEOS supplies it.
  */
 function updateScreen(newMetadata) {
 	if (typeof newMetadata === 'undefined') {
-		// container.style.backgroundColor = 'black'
-		container.classList.add('js-gradientBackdrop')
+		$('#container').addClass('js-gradientBackdrop')
 		$('#shadow-overlay').hide()
 	} else {
-		container.style.removeProperty('background-color')
-		container.classList.remove('js-gradientBackdrop')
+		$('#container').removeClass('js-gradientBackdrop')
 		$('#shadow-overlay').show()
 		// if new or first song:
 		if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
@@ -133,7 +108,7 @@ function updateScreen(newMetadata) {
 	}
 }
 
-/** Makes the background go black.  */
+/** Makes the background go blank.  */
 function clearScreen() {
 	updateScreen()
 }
