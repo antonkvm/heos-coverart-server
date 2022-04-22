@@ -128,7 +128,7 @@ function connectToHeosAndCreateSSEConnection() {
 				if (state == 'play') {
 					if (timerRunning) {
 						stopTimer()
-						prevMetadata = null
+						prevMetadata = null  // clear this so it meets if condition for sending new metadata sse
 					}
 					turnOnBacklight()
 					connection.write('player', 'get_now_playing_media', {pid: myPid})
