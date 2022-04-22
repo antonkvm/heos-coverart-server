@@ -112,7 +112,7 @@ function connectToHeosAndCreateSSEConnection() {
 			})
 			.on({commandGroup: 'player', command: 'get_now_playing_media'}, res => {
 				let metadata = res.payload
-				if (prevMetadata == null || (metadata.mid != prevMetadata.mid && metadata.artist != '') ) {
+				if (prevMetadata == null || (metadata.mid != prevMetadata.mid && metadata.image_url != '') ) {
 					prevMetadata = metadata
 					if (timerRunning) stopTimer()
 					turnOnBacklight()
