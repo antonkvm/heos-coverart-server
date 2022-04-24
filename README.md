@@ -1,12 +1,18 @@
 # Heos Cover Art Server
 
-A simple nodeJS server delivering a webpage showing albumart and trackinfo of the song currently playing on your HEOS device. Tested with Spotify and AirPlay. Webpage optimized for 720x720 square display.
+A simple nodeJS server delivering a webpage showing albumart and trackinfo of the song currently playing on your HEOS device. I created this application with the intention of running it on a Raspberry Pi Zero with a Pimeroni Hyperpixel Square display attached.
 
 ## Dependencies
-This project makes use of the [heos-api package by juliuscc](https://www.npmjs.com/package/heos-api) to communicate with the HEOS device, which made creating this project way simpler on my end, because I didn't have to worry at all about how to make a telnet connection work. Other than that is uses [express](https://www.npmjs.com/package/express) to answer GET-requests.
 
+Because Denon/Heos APIs are accessed via Telnet, and I didn't want to bother figuring that out, I made use of the very well-made [heos-api package] (https://www.npmjs.com/package/heos-api) by [juliuscc] (https://github.com/juliuscc). Basically, this package took care of what would probably have been the most challenging part of this project. Thanks!
+
+Besides that, this project also uses [express] (https://www.npmjs.com/package/express) to serve the static HTML/CSS webpage, as well as creating the event stream that updates said webpage with the info received from the AVR via the heos-api package.
+
+I used to use the [express-sse] (https://www.npmjs.com/package/express-sse) package to handle the event stream stuff, but as it's not well maintained, it eventually stopped working and broke my application. Luckily, this forced me to learn that event streams and server-sent events aren't that hard to set up yourself, which I did (in express) after removed the package.
 ## How it works, briefly
-The nodeJS server makes a connection to the HEOS device. Through this connection, the server gets the metadata of the currently streaming song, which it then sends to the client (the browser window). On the client side, this metadata is used to fetch the album art via the internet as well as display the song title and artist. The nodeJS server also receives information about the play state of the HEOS device, allowing it to power off the display backlight after a delay when music playback was stopped.
+
+The nodeJS server makes a connection to the Heos device and gets notified in the event of the currently playing track changing, or the play state changing (play/pause/stop). This information gets relayed to the client (the browser window), along with the metadata when necessary. The client extracts the song name, artist name, and cover art url from this metadata and displays it on the screen. In the event of the play state changing to 'play' or 'stop', which happens when music playback is started or stopped, server starts or stops a sleep timer. During the countdown, the server sends the progress of the counter to the client, which then displays the remaining seconds. When the timer runs out, the server turns of the Pimeroni display. If at any point during or after the counter music starts playing again, the countdown will either abort or reactivate the display, notifying the client that it should show cover art and trackinfo again. 
+
 ## Installation
 1. To do
 
@@ -17,4 +23,4 @@ The nodeJS server makes a connection to the HEOS device. Through this connection
 - To Do
 
 ## Known issues
-- Sometimes, the trackinfo text updates faster than the album art. I tried waiting for the 'onload' event of the image before updating the text, but that did not solve the issue on my pi zero setup.
+- To Do
