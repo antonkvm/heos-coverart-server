@@ -6,6 +6,7 @@ const { exec } = require('child_process')
 
 let prevMetadata = null
 let xRes
+let streamOpened = false
 
 // turn this off when testing locally:
 const backlightControlActive = true
@@ -84,16 +85,19 @@ function turnOffBacklight() {
 function connectToHeosAndCreateSSEConnection() {
 	let myPid
 	heos.discoverAndConnect().then(connection => {
-		// initialize SSE server:
-		app.get('/stream', (req, response) => {
-			response.setHeader('Cache-Control', 'no-cache');
-			response.setHeader('Content-Type', 'text/event-stream');
-			response.setHeader('Access-Control-Allow-Origin', '*');
-			response.setHeader('Connection', 'keep-alive');
-			response.flushHeaders(); // flush the headers to establish SSE with client
-			xRes = response
-			sendSSE({event: 'init'}, response)
-		})
+		// initialize SSE server if not already open:
+		if (streamOpened == false) {
+			app.get('/stream', (req, response) => {
+				streamOpened = true
+				response.setHeader('Cache-Control', 'no-cache');
+				response.setHeader('Content-Type', 'text/event-stream');
+				response.setHeader('Access-Control-Allow-Origin', '*');
+				response.setHeader('Connection', 'keep-alive');
+				response.flushHeaders(); // flush the headers to establish SSE with client
+				xRes = response
+				sendSSE({event: 'init'}, response)
+			})
+		}
 		connection
 			.write('system', 'register_for_change_events', {enable: 'on'})
 			.write('system', 'prettify_json_response', {enable: 'on'})
@@ -139,8 +143,7 @@ function connectToHeosAndCreateSSEConnection() {
 				if (!timerRunning) startSleepTimer()
 				if (hadError) console.log('Closed Heos Connection with error.')
 				else console.log('Closed Heos Connection without error.')
-				// todo: reconnect to HEOS, close current event stream with res.end, bc new stream will be created?
-				xRes.end()
+				// reconnect to heos on disconnect. Event stream stays active bc client might not attempt to reconnect.
 				connectToHeosAndCreateSSEConnection()
 			})
 	})
