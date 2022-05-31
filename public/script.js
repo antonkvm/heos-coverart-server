@@ -105,7 +105,7 @@ $(()=>{
 			// if new or first song:
 			if (typeof currentMetadata === 'undefined' || newMetadata.album != currentMetadata.album) {
 				currentMetadata = newMetadata
-				// wait 2 seconds bc with airplay, img_src can be slow to update. Avoids img load errors.
+				// wait 2 seconds, bc airplay can be slow to update the img behind its url. Avoids img load errors.
 				setTimeout(() => {
 					$('img').attr('src', newMetadata.image_url + '?t=' + new Date().getTime())
 					setTrackInfo(newMetadata)
