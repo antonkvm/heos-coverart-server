@@ -21,14 +21,14 @@ $(()=>{
 		$('hr').hide()
 	}
 	
-	serverEvents.onmessage = (event) => {
-		let data = JSON.parse(event.data)
+	serverEvents.onmessage = (msg) => {
+		let data = JSON.parse(msg.data)
 		switch (data.event) {
 			case 'init':
 				console.log('Received initialization SSE from server.')
 				break
 			case 'noHeosFound':
-				clearScreen()
+				clearArtAndSetGradientBG()
 				clearTrackInfo()
 				$('#msg-title').text('No HEOS device found on network :(')
 				$('#msg-body').text('Check if the device is plugged into power and connected with the network.')
@@ -40,7 +40,7 @@ $(()=>{
 				// document.querySelectorAll('#msg-title, #msg-body, #sleep1, #sleep2, #sleep3').forEach((el)=>el.textContent='')
 				break
 			case 'getting sleepy':
-				clearScreen()
+				clearArtAndSetGradientBG()
 				clearTrackInfo()
 				$('#msg-title, #msg-body').text('')
 				$('#sleep1').text('Sleeping in')
@@ -114,7 +114,7 @@ $(()=>{
 	}
 	
 	/** Makes the background go blank.  */
-	function clearScreen() {
+	function clearArtAndSetGradientBG() {
 		updateScreen()
 	}
 
