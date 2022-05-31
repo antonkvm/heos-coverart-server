@@ -52,6 +52,7 @@ function startSleepTimer() {
 	count++
 	if (remaining == 0) {
 		// todo: send 'zzz' as SSE message?
+		sendSSE({event: 'zzz'}, xRes)
 		turnOffBacklight()
 		count = 0
 	} else {

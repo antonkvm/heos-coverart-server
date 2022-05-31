@@ -47,6 +47,11 @@ $(()=>{
 				$('#sleep2').text(data.remaining)
 				$('#sleep3').text('seconds')
 				break
+			case 'zzz': 
+				$('#sleep1, #sleep2, #sleep3').text('')
+				$('#container').removeClass('js-gradientBackdrop')
+				$('#container').css('background-color', 'black')
+				break
 			default:
 				break
 		}
