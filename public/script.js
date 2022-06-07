@@ -36,7 +36,6 @@ $(()=>{
 			case 'new metadata':
 				updateScreen(data.payload)
 				$('#msg-title, #msg-body, #sleep1, #sleep2, #sleep3').text('')
-				$('#container').addClass('js-gradientBackdrop')
 				$('#container').css('background-color', '')
 				// The above without jquery:
 				// document.querySelectorAll('#msg-title, #msg-body, #sleep1, #sleep2, #sleep3').forEach((el)=>el.textContent='')
